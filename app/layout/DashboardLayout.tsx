@@ -1,0 +1,20 @@
+import React from "react";
+
+interface DashboardLayoutProps {
+    children: React.ReactNode;
+    sidebar: React.ReactNode;
+}
+
+export default function DashboardLayout({ children, sidebar }: DashboardLayoutProps) {
+    return (
+        <div className="h-full w-full flex flex-row">
+            <main className="h-full w-10/12 pl-10 pr-10 pb-10 flex flex-col"> {/* <-- Adicionado aqui */}
+                {children}
+            </main>
+
+            <aside className="h-full w-2/12 secondary-background pl-10 pr-10">
+                {sidebar}
+            </aside>
+        </div>
+    );
+}

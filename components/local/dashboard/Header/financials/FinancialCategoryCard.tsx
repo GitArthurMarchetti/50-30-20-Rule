@@ -3,49 +3,77 @@ import React from "react";
 
 interface FinancialCategoryCardProps {
     title: string;
-    percentage: string;
-    amount: string;
+    maxPercentage: string;
+    actualPercentage: string;
+    maxAmount: string;
+    actualAmount: string;
     children: React.ReactNode;
 }
 
+const getCategoryColorClass = (category: string) => {
+    switch (category) {
+        case "Income":
+            return "title-income";
+        case "Needs":
+            return "title-needs";
+        case "Wants":
+            return "title-wants";
+        case "Reserves":
+        case "Investments":
+            return "title-reserves";
+        default:
+            return "title-reserves";
+    }
+};
+
 export default function FinancialCategoryCard({
     title,
-    percentage,
-    amount,
+    maxPercentage,
+    actualPercentage,
+    maxAmount,
+    actualAmount,
     children,
 }: FinancialCategoryCardProps) {
-    return (
-        // O container principal continua sendo uma coluna flexível
-        <div className="secondary-background flex flex-col h-full w-full rounded-lg overflow-hidden">
 
-            {/* 1. Header Card - Altura baseada no conteúdo */}
-            {/* 'flex-shrink-0' impede que ele encolha se o conteúdo for grande */}
+    const categoryColorClass = getCategoryColorClass(title);
+
+
+    return (
+        <div className="secondary-background flex flex-col h-full w-full rounded-lg overflow-hidden">
+            {/* 1. Header Card */}
             <div className="pt-5 pb-5 flex justify-center items-center flex-shrink-0">
-                <h1 className="font-bold text-lg">{title}</h1>
+                <h1 className={`font-bold text-lg ${categoryColorClass}`}>{title}</h1>
             </div>
 
-            {/* 2. Scroll Area - Cresce para ocupar o espaço livre */}
-            {/* 'flex-grow' é a classe chave aqui. Ela faz este elemento se expandir. */}
-            <div className="flex-grow">
+            {/* 2. Scroll Area */}
+            <div className="flex-grow min-h-0">
                 <ScrollArea className="h-full w-full">
-                    <div className="p-2"> {/* Adicionado padding para o conteúdo não colar nas bordas */}
+                    <div className="p-2">
                         {children}
                     </div>
                 </ScrollArea>
             </div>
 
+            {title === "Income" ? (
+                <div className="flex flex-col flex-shrink-0 text-white p-2 border-t">
+                    <p className="text-center text-sm">{maxPercentage}</p>
+                    <p className="text-center font-bold">{actualAmount}</p>
+                </div>
 
-            {/* 3. Rodapé - Também tem altura baseada no conteúdo */}
-            <div className="bg-green-500 flex flex-col flex-shrink-0">
-                {/* % */}
-                <div className="w-full h-1/2 flex justify-center items-center p-1">
-                    <p className="text-black font-bold">{percentage}</p>
+
+            ) : (
+
+                <div className="border-t flex flex-col flex-shrink-0">
+                    <div className="w-full flex flex-row justify-center items-center p-1">
+                        <p className="text-center w-1/2 text-sm">{actualPercentage}</p>
+                        <p className="text-center w-1/2 font-bold text-sm">{maxPercentage}</p>
+                    </div>
+                    <div className="w-full flex flex-row justify-center items-center p-1">
+                        <p className="text-center w-1/2 text-sm">{actualAmount}</p>
+                        <p className="text-center w-1/2 font-bold text-sm">{maxAmount}</p>
+                    </div>
                 </div>
-                {/* $ */}
-                <div className="w-full h-1/2 flex justify-center items-center p-1">
-                    <p className="text-black font-bold">{amount}</p>
-                </div>
-            </div>
+            )}
         </div>
     );
 }

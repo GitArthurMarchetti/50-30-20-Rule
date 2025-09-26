@@ -6,7 +6,7 @@ export default function UserWelcome() {
         <div className="flex flex-row items-center h-full">
             <FaUserCircle className="h-full w-auto" />
 
-            <div className="card-transaction ml-10 flex items-center p-2">
+            <div className="card-transaction ml-10 flex items-center">
                 <VscEye className="h-5 w-5 mr-2" />
                 <p className="mr-2">
                     Last month&apos;s result:

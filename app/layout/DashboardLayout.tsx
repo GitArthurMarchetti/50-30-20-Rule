@@ -8,7 +8,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children, sidebar }: DashboardLayoutProps) {
     return (
         <div className="h-full w-full flex flex-row">
-            <main className="h-full w-10/12 pl-10 pr-10 pb-10 flex flex-col"> {/* <-- Adicionado aqui */}
+            <main className="h-full w-10/12 pl-10 pr-10 pb-10 flex flex-col"> 
                 {children}
             </main>
 

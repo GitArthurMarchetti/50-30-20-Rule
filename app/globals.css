@@ -4,13 +4,31 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background-transaction: #ffffff18;
   --border-radius: 5px;
   --radius: 0.625rem;
+
   --background: #16191E;
-  --secondary-background: #1E2126;
   --foreground: #dfdfe9;
-  --card: oklch(1 0 0);
+  --secondary-background: #1E2126;
+  --secondary-foregound: #8b8b8b;
+
+  --color-green: #22c55e;
+  --color-red: #ef4444;
+  --color-yellow: #eab308;
+
+  /* categories colors */
+  --income-title-color: #009DFF;
+  --needs-title-color: #E9B96C;
+  --wants-title-color: #C0B9FF;
+  --reserves-title-color: #FFC8E4;
+
+  /* cards */
+  --background-transaction: #ffffff18;
+  --background-transaction-hover: #ffffff35;
+
+  /* buttons */ 
+  --main-button-background: #b700ff71;
+   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
@@ -88,6 +106,24 @@
   }
 } */
 
+.main-button {
+
+  display: flex;
+  flex-direction: row;
+
+  cursor: pointer;
+
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  font-weight: 700;
+
+  background-color: var(--main-button-background);
+  border-radius: var(--border-radius);
+
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -96,17 +132,65 @@ body {
   overflow: hidden;
 }
 
-.card-transaction{
+.card-transaction {
   display: flex;
   flex-direction: row;
+
+  cursor: pointer;
+
+  padding: 1rem;
 
   background-color: var(--background-transaction);
   border-radius: var(--border-radius);
 }
 
-.secondary-background{
+.card-transaction:hover {
+  background-color: var(--background-transaction-hover);
+}
+
+.secondary-background {
   background-color: var(--secondary-background);
 }
+
+.secondary-text {
+  color: var(--secondary-foregound);
+  font-weight: 700;
+}
+
+
+.title-income {
+  color: var(--income-title-color);
+}
+
+.title-needs {
+  color: var(--needs-title-color);
+}
+
+.title-wants {
+  color: var(--wants-title-color);
+}
+
+.title-reserves {
+  color: var(--reserves-title-color);
+}
+
+.title-investmentes {
+  color: var(--reserves-title-color);
+}
+
+.text-income {
+  color: var(--color-green);
+}
+
+.text-expense {
+  color: var(--color-red);
+}
+
+.text-saving {
+  color: var(--color-yellow);
+}
+
+
 .dark {
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);

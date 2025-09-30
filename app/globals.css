@@ -157,6 +157,10 @@ body {
   font-weight: 700;
 }
 
+.title{
+  font-size: large;
+  font-weight: 700;
+}
 
 .title-income {
   color: var(--income-title-color);

@@ -2,7 +2,7 @@ import { FaBookOpen } from "react-icons/fa";
 
 export default function DatabaseLink() {
   return (
-    <div className="flex flex-row items-center h-full card-transaction !p-7">
+    <div className="flex flex-row items-center h-full card-transaction !p-7 m-12">
       <p className="mr-3">
         Annual Database
       </p>

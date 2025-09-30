@@ -8,11 +8,11 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children, sidebar }: DashboardLayoutProps) {
     return (
         <div className="h-full w-full flex flex-row">
-            <main className="h-full w-10/12 pl-10 pr-10 pb-10 flex flex-col"> 
+            <main className="h-full w-10/12 px-6 pb-10 flex flex-col"> 
                 {children}
             </main>
 
-            <aside className="h-full w-2/12 secondary-background pl-10 pr-10">
+            <aside className="h-full w-2/12 secondary-background px-6 pb-10">
                 {sidebar}
             </aside>
         </div>

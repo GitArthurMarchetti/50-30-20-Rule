@@ -1,3 +1,5 @@
+import { TransactionType } from "@/app/generated/prisma";
+import AddTransactionButton from "@/components/local/TransactionButton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import React from "react";
 
@@ -8,6 +10,7 @@ interface FinancialCategoryCardProps {
     maxAmount: string;
     actualAmount: string;
     children: React.ReactNode;
+    categoryType: TransactionType; // <-- ADICIONE ESTA LINHA
 }
 
 const getCategoryColorClass = (category: string) => {
@@ -28,6 +31,7 @@ const getCategoryColorClass = (category: string) => {
 
 export default function FinancialCategoryCard({
     title,
+    categoryType,
     maxPercentage,
     actualPercentage,
     maxAmount,
@@ -42,7 +46,8 @@ export default function FinancialCategoryCard({
         <div className="secondary-background flex flex-col h-full w-full rounded-lg overflow-hidden">
             {/* 1. Header Card */}
             <div className="pt-5 pb-5 flex justify-center items-center flex-shrink-0">
-                <h1 className={`font-bold text-lg ${categoryColorClass}`}>{title}</h1>
+                <h1 className={`title ${categoryColorClass}`}>{title}</h1>
+                <AddTransactionButton categoryType={categoryType} />
             </div>
 
             {/* 2. Scroll Area */}

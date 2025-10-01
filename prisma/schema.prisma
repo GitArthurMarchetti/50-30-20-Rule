@@ -17,7 +17,6 @@ model User {
   username                String   @unique
   email                   String   @unique
   password_hash           String
-  monthly_total_income    Decimal? @db.Decimal(10, 2)
   previous_month_balance  Decimal? @db.Decimal(10, 2)
 
   transactions Transaction[]
@@ -27,6 +26,7 @@ model User {
 }
 
 enum TransactionType {
+  ROLLOVER
   INCOME
   NEEDS
   WANTS

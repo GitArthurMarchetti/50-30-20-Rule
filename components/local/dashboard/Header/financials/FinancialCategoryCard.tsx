@@ -10,7 +10,8 @@ interface FinancialCategoryCardProps {
     maxAmount: string;
     actualAmount: string;
     children: React.ReactNode;
-    categoryType: TransactionType; // <-- ADICIONE ESTA LINHA
+    categoryType: TransactionType;
+    onTransactionAdded: () => void;
 }
 
 const getCategoryColorClass = (category: string) => {
@@ -37,6 +38,7 @@ export default function FinancialCategoryCard({
     maxAmount,
     actualAmount,
     children,
+    onTransactionAdded,
 }: FinancialCategoryCardProps) {
 
     const categoryColorClass = getCategoryColorClass(title);
@@ -47,7 +49,8 @@ export default function FinancialCategoryCard({
             {/* 1. Header Card */}
             <div className="pt-5 pb-5 flex justify-center items-center flex-shrink-0">
                 <h1 className={`title ${categoryColorClass}`}>{title}</h1>
-                <AddTransactionButton categoryType={categoryType} />
+                <AddTransactionButton categoryType={categoryType} onTransactionAdded={onTransactionAdded}
+                />
             </div>
 
             {/* 2. Scroll Area */}

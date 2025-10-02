@@ -47,8 +47,8 @@ export default function FinancialCategoryCard({
     return (
         <div className="secondary-background flex flex-col h-full w-full rounded-lg overflow-hidden">
             {/* 1. Header Card */}
-            <div className="pt-5 pb-5 flex justify-center items-center flex-shrink-0">
-                <h1 className={`title ${categoryColorClass}`}>{title}</h1>
+            <div className="pt-5 pb-5 flex justify-center items-center flex-row flex-shrink-0">
+                <h1 className={`title ${categoryColorClass}  w-9/12 text-center`}>{title}</h1>
                 <AddTransactionButton categoryType={categoryType} onTransactionAdded={onTransactionAdded}
                 />
             </div>
@@ -63,7 +63,7 @@ export default function FinancialCategoryCard({
             </div>
 
             {title === "Income" ? (
-                <div className="flex flex-col flex-shrink-0 text-white p-2 border-t">
+                <div className="flex flex-col flex-shrink-0 text-white p-2 border-t p-4">
                     <p className="text-center text-sm">{maxPercentage}</p>
                     <p className="text-center font-bold">{actualAmount}</p>
                 </div>
@@ -71,7 +71,7 @@ export default function FinancialCategoryCard({
 
             ) : (
 
-                <div className="border-t flex flex-col flex-shrink-0">
+                <div className="border-t flex flex-col flex-shrink-0 p-4">
                     <div className="w-full flex flex-row justify-center items-center p-1">
                         <p className="text-center w-1/2 text-sm">{actualPercentage}</p>
                         <p className="text-center w-1/2 font-bold text-sm">{maxPercentage}</p>

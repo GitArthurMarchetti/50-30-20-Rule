@@ -1,68 +1,25 @@
-import { TransactionType } from "@/app/generated/prisma";
-import { prisma } from "@/prisma/db";
-import { Decimal } from "@prisma/client/runtime/library";
+import { getSessionUser } from "@/app/lib/auth-server";
+import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
+import { NextResponse } from "next/server";
 
-export async function updateMonthlySummary(userId: number) {
-  const now = new Date();
-  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+export async function POST() {
+  try {
+    const session = await getSessionUser();
+    if (!session) {
+      return NextResponse.json({ message: "Não autorizado" }, { status: 401 });
+    }
 
-  const transactions = await prisma.transaction.findMany({
-    where: {
-      userId: userId,
-      date: {
-        gte: firstDayOfMonth,
-        lte: lastDayOfMonth,
-      },
-    },
-  });
+    const summary = await getOrCreateMonthlySummary(session.userId, new Date());
 
-  const total_income = transactions
-    .filter(t => t.type === TransactionType.INCOME)
-    .reduce((sum, t) => sum.add(t.amount), new Decimal(0));
-  
-  const needs_expenses = transactions
-    .filter(t => t.type === TransactionType.NEEDS)
-    .reduce((sum, t) => sum.add(t.amount), new Decimal(0));
-
-  const wants_expenses = transactions
-    .filter(t => t.type === TransactionType.WANTS)
-    .reduce((sum, t) => sum.add(t.amount), new Decimal(0));
-
-  const total_savings = transactions
-    .filter(t => t.type === TransactionType.RESERVES)
-    .reduce((sum, t) => sum.add(t.amount), new Decimal(0));
-    
-  const total_investments = transactions
-    .filter(t => t.type === TransactionType.INVESTMENTS)
-    .reduce((sum, t) => sum.add(t.amount), new Decimal(0));
-
-  const final_balance = total_income.sub(needs_expenses).sub(wants_expenses);
-
-  await prisma.monthlySummary.upsert({
-    where: {
-      userId_month_year: { 
-        userId: userId,
-        month_year: firstDayOfMonth,
-      }
-    },
-    update: {
-      total_income,
-      needs_expenses,
-      wants_expenses,
-      total_savings,
-      total_investments,
-      final_balance,
-    },
-    create: {
-      userId: userId,
-      month_year: firstDayOfMonth,
-      total_income,
-      needs_expenses,
-      wants_expenses,
-      total_savings,
-      total_investments,
-      final_balance,
-    },
-  });
+    return NextResponse.json({
+      message: "Resumo mensal atualizado com sucesso.",
+      summary,
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar resumo:", error);
+    return NextResponse.json(
+      { message: "Erro interno do servidor" },
+      { status: 500 }
+    );
+  }
 }

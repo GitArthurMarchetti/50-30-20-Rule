@@ -1,6 +1,6 @@
 import { formatCurrency } from "@/app/lib/formatters";
 import { Trash2 } from "lucide-react";
-import React, { useState } from "react";
+import React from "react";
 
 interface FinancialEntryRowProps {
   id: number;

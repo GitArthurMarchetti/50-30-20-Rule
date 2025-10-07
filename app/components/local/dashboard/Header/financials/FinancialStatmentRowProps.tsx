@@ -1,9 +1,5 @@
-interface FinancialStatementRowProps {
-    label: string;
-    amount: string;
-    percentage: string;
-    isTotal?: boolean; 
-}
+import { FinancialStatementRowProps } from "@/app/types/financialsType";
+
 
 export default function FinancialStatementRow({ label, amount, percentage, isTotal = false }: FinancialStatementRowProps) {
 

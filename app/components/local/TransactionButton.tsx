@@ -1,23 +1,29 @@
 "use client";
 
-import { useState, FormEvent } from "react";
-// Remova 'useRouter' pois não vamos mais usá-lo aqui
+import { useState, FormEvent, useEffect } from "react";
 import { PlusCircle } from "lucide-react";
 import { TransactionType } from "@/app/generated/prisma";
 
 interface AddTransactionButtonProps {
   categoryType: TransactionType;
-  // 1. Adicionamos uma nova prop: uma função que será chamada quando a transação for criada com sucesso.
   onTransactionAdded: () => void;
+  selectedDate: Date;
 }
 
-export default function AddTransactionButton({ categoryType, onTransactionAdded }: AddTransactionButtonProps) {
+export default function AddTransactionButton({ categoryType, onTransactionAdded, selectedDate }: AddTransactionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(selectedDate.toISOString().split('T')[0]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+
+  useEffect(() => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(1); 
+    setDate(newDate.toISOString().split('T')[0]);
+  }, [selectedDate]); 
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -35,14 +41,14 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded 
         setIsLoading(false);
         return;
       }
-
+      
       const response = await fetch('/api/transactions/[id]', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           description,
           amount: numericAmount,
-          date: new Date(date),
+          date: new Date(date + 'T00:00:00'),
           type: categoryType,
         }),
       });
@@ -51,13 +57,9 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded 
         throw new Error("Falha ao criar a transação.");
       }
       
-      // Sucesso!
       setIsOpen(false);
-      
-      // 2. EM VEZ DE router.refresh(), CHAMAMOS A FUNÇÃO DE AVISO
       onTransactionAdded();
       
-      // Limpa o formulário
       setDescription("");
       setAmount("");
 
@@ -68,28 +70,33 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded 
     }
   };
 
+  const openModal = () => {
+    setDescription("");
+    setAmount("");
+    setError("");
+    setIsOpen(true);
+  }
+
   return (
     <>
-      {/* O resto do seu componente JSX permanece exatamente o mesmo */}
-      <button onClick={() => setIsOpen(true)} className="text-gray-400 hover:text-white transition-colors">
+      <button onClick={openModal} className="text-gray-400 hover:text-white transition-colors">
         <PlusCircle size={20} />
       </button>
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-           {/* ... todo o seu formulário ... */}
            <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Nova Transação em <span className="capitalize">{categoryType.toLowerCase()}</span></h2>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label htmlFor="description" className="block text-sm font-medium mb-1">Name</label>
+                <label htmlFor="description" className="block text-sm font-medium mb-1">Nome</label>
                 <input type="text" id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
               </div>
               <div className="mb-4">
-                <label htmlFor="amount" className="block text-sm font-medium mb-1">Value</label>
+                <label htmlFor="amount" className="block text-sm font-medium mb-1">Valor</label>
                 <input type="number" id="amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0,00" step="0.01" required />
               </div>
               <div className="mb-4">
-                <label htmlFor="date" className="block text-sm font-medium mb-1">Date</label>
+                <label htmlFor="date" className="block text-sm font-medium mb-1">Data</label>
                 <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
               </div>
               {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
@@ -104,4 +111,3 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded 
     </>
   );
 }
-

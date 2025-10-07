@@ -49,10 +49,10 @@ export default function LoginPage() {
   return (
     <main className="min-h-dvh flex items-center justify-center bg-gray-100 p-4">
       <form noValidate onSubmit={onSubmit} className="w-full max-w-sm bg-white p-6 rounded-lg shadow space-y-3">
-        <h1 className="text-2xl font-bold">Entrar</h1>
+        <h1 className="text-2xl font-bold text-black">Join</h1>
 
         <input
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded px-3 py-2 text-black"
           type="email"
           placeholder="email"
           value={email}
@@ -61,9 +61,9 @@ export default function LoginPage() {
         />
 
         <input
-          className="w-full border rounded px-3 py-2"
+          className="w-full border rounded px-3 py-2 text-black"
           type="password"
-          placeholder="senha"
+          placeholder="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -76,7 +76,7 @@ export default function LoginPage() {
           disabled={loading}
           type="submit"
         >
-          {loading ? "Entrando..." : "Entrar"}
+          {loading ? "Join..." : "Join"}
         </button>
       </form>
     </main>

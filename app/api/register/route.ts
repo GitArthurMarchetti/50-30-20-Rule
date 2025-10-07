@@ -38,11 +38,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Usuário criado" }, { status: 201 });
   } catch (e: unknown) {
-    // 🔒 Sem any: trate como erro conhecido do Prisma
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return NextResponse.json({ message: "Email/username já cadastrado" }, { status: 409 });
     }
-    // fallback seguro
     const msg = e instanceof Error ? e.message : "Erro interno";
     console.error(msg);
     return NextResponse.json({ message: "Erro interno" }, { status: 500 });

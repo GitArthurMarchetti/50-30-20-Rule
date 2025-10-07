@@ -1,3 +1,4 @@
+import { formatCurrency } from "@/app/lib/formatters";
 import { Trash2 } from "lucide-react";
 import React, { useState } from "react";
 
@@ -7,7 +8,7 @@ interface FinancialEntryRowProps {
   amount: number | null | undefined;
   categoryTitle: string;
   onDelete: (id: number) => void;
-  isDeleting?: boolean; // Nova prop para controlar o estado visual
+  isDeleting?: boolean; 
 }
 
 const getAmountColorClass = (category: string) => {
@@ -31,18 +32,13 @@ export default function FinancialEntryRow({
   amount,
   categoryTitle,
   onDelete,
-  isDeleting, // Recebe a nova prop
+  isDeleting,
 }: FinancialEntryRowProps) {
-  const formattedAmount = new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount ?? 0);
+
+  const formattedAmount = formatCurrency(amount ?? 0);
 
   const amountColorClass = getAmountColorClass(categoryTitle);
 
-  // Adiciona classes de estilo para o efeito de carregamento sutil
   const deletingClasses = isDeleting ? "opacity-50 pointer-events-none" : "";
 
   return (

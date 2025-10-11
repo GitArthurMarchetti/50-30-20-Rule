@@ -16,6 +16,21 @@ export default function FinancialStatement({
   result,
 }: FinancialStatementProps) {
 
+  const isRowInBadSituation = (label: string, value: number) => {
+    if (revenue === 0) return false;
+    const percentageOfRevenue = (value / revenue) * 100;
+
+    switch (label) {
+      case "E. Fixed":
+        return percentageOfRevenue > 50;
+      case "E. Variable":
+        return percentageOfRevenue > 30;
+      case "Result":
+        return percentageOfRevenue < 0;
+      default:
+        return false;
+    }
+  };
 
   const calculatePercentage = (value: number) => {
     if (revenue === 0) return "0%";
@@ -25,12 +40,32 @@ export default function FinancialStatement({
 
   const statementData = {
     rows: [
-      { label: "Revenue", amount: formatCurrency(revenue), percentage: "100%" },
-      { label: "E. Fixed", amount: formatCurrency(fixedExpenses), percentage: calculatePercentage(fixedExpenses) },
-      { label: "E. Variable", amount: formatCurrency(variableExpenses), percentage: calculatePercentage(variableExpenses) },
-      { label: "Reserves", amount: formatCurrency(reserves), percentage: calculatePercentage(reserves) },
+      { label: "Revenue", amount: formatCurrency(revenue), percentage: "100%", isBad: false }, // Receita nunca é "ruim"
+      {
+        label: "E. Fixed",
+        amount: formatCurrency(fixedExpenses),
+        percentage: calculatePercentage(fixedExpenses),
+        isBad: isRowInBadSituation("E. Fixed", fixedExpenses) 
+      },
+      {
+        label: "E. Variable",
+        amount: formatCurrency(variableExpenses),
+        percentage: calculatePercentage(variableExpenses),
+        isBad: isRowInBadSituation("E. Variable", variableExpenses) 
+      },
+      {
+        label: "Reserves",
+        amount: formatCurrency(reserves),
+        percentage: calculatePercentage(reserves),
+        isBad: isRowInBadSituation("Reserves", reserves)
+      },
     ],
-    result: { label: "Result", amount: formatCurrency(result), percentage: calculatePercentage(result) },
+    result: {
+      label: "Result",
+      amount: formatCurrency(result),
+      percentage: calculatePercentage(result),
+      isBad: isRowInBadSituation("E. Variable", variableExpenses) 
+    },
   };
 
   return (
@@ -46,6 +81,7 @@ export default function FinancialStatement({
             label={row.label}
             amount={row.amount}
             percentage={row.percentage}
+            isBad={row.isBad}
           />
         ))}
       </div>
@@ -55,6 +91,7 @@ export default function FinancialStatement({
           amount={statementData.result.amount}
           percentage={statementData.result.percentage}
           isTotal={true}
+          isBad={statementData.result.isBad}
         />
       </div>
     </section>

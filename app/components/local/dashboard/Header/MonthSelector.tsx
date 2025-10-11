@@ -15,21 +15,21 @@ export default function MonthSelector({ selectedDate, onMonthChange }: MonthSele
         "July", "August", "September", "October", "November", "December"
     ];
 
-    // Obtém o nome do mês a partir da data selecionada
     const currentMonthName = months[selectedDate.getMonth()];
 
     return (
-        <header className="flex flex-row h-20 w-auto">
+        <header className="flex h-20 w-auto items-center justify-end p-4">
             <DropdownMenu>
-                <DropdownMenuTrigger className="ml-auto flex flex-row items-center mt-auto mb-auto focus:outline-none">
-                    {currentMonthName} <FaAngleDown className="ml-5" />
+                <DropdownMenuTrigger className="flex flex-row items-center justify-center rounded-md  bg-transparent px-4 py-2 text-sm font-medium ">
+                    {currentMonthName} <FaAngleDown className="ml-2 h-4 w-4" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                    <DropdownMenuLabel>Months</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
+                <DropdownMenuContent className="w-25 rounded-md border bg-white p-1 text-black shadow-md">
                     {months.map((month, index) => (
-                        // 2. Ao clicar, chama a função onMonthChange com o índice do mês
-                        <DropdownMenuItem key={month} onSelect={() => onMonthChange(index)}>
+                        <DropdownMenuItem
+                            key={month}
+                            onSelect={() => onMonthChange(index)}
+                            className="cursor-pointer rounded-sm px-2 py-1.5 text-sm outline-none"
+                        >
                             {month}
                         </DropdownMenuItem>
                     ))}

@@ -190,6 +190,10 @@ body {
   color: var(--color-red);
 }
 
+.bg-expense{
+  background-color: var(--color-red);
+}
+
 .text-saving {
   color: var(--color-yellow);
 }

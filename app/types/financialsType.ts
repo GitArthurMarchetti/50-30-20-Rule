@@ -17,4 +17,5 @@ export interface FinancialStatementRowProps {
     amount: string;
     percentage: string;
     isTotal?: boolean; 
+    isBad: boolean;
 }

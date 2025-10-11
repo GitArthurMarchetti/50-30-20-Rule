@@ -1,10 +1,14 @@
 import { FinancialStatementRowProps } from "@/app/types/financialsType";
 
 
-export default function FinancialStatementRow({ label, amount, percentage, isTotal = false }: FinancialStatementRowProps) {
+export default function FinancialStatementRow({ label, amount, percentage, isTotal = false, isBad = false }: FinancialStatementRowProps) {
 
-    const rowClasses = `w-full flex flex-row justify-between card-transaction items-center ${isTotal ? 'h-5/6 my-auto' : ''}`;
 
+    const situationClass = isBad ? 'text-red-500 font-bold bg-red-500 bg-opacity-20 rounded-md' : '';
+
+    const rowClasses = `w-full flex flex-row justify-between card-transaction items-center p-2 ${isTotal ? 'h-5/6 my-auto' : ''} ${situationClass}`; 
+
+    
     return (
         <div className={rowClasses}>
             <p className="font-bold">{label}</p>

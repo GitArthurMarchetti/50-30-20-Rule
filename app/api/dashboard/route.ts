@@ -63,7 +63,6 @@ export async function GET(request: NextRequest) {
     const reservesTotal = currentMonthTransactions.filter(t => t.type === 'RESERVES').reduce((s, t) => s.add(t.amount), new Decimal(0));
     const result = baseIncome.sub(needsExpenses).sub(wantsExpenses);
 
-    // --- CORREÇÃO APLICADA AQUI ---
     const responseData = {
       cards: {
         income: calculateCategoryData(TransactionType.INCOME, 100, currentMonthTransactions, baseIncome),

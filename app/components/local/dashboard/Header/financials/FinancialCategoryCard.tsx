@@ -1,4 +1,5 @@
-import React from "react";
+'use client'
+import React from "react"; // Removi useState, não é mais necessário
 import AddTransactionButton from "../../../TransactionButton";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { FinancialCategoryCardProps } from "@/app/types/financialsType";
@@ -24,19 +25,21 @@ export default function FinancialCategoryCard({
     actualAmount,
     children,
     onTransactionAdded,
-    selectedDate, 
+    selectedDate,
 }: FinancialCategoryCardProps) {
 
     const categoryColorClass = getCategoryColorClass(title);
 
+    const situacion = actualPercentage > maxPercentage ? "text-expense bg-opacity-30 font-bold " : "bg-transparent";
+
     return (
         <div className="secondary-background flex flex-col h-full w-full rounded-lg overflow-hidden">
-            <div className="pt-5 pb-5 flex justify-center items-center flex-shrink-0">
-                <h1 className={`title ${categoryColorClass}`}>{title}</h1>
+            <div className="pt-5 pb-5 flex justify-center items-center flex-shrink-0 ">
+                <h1 className={`title  w-10/12  text-center ${categoryColorClass}`}>{title}</h1>
                 <AddTransactionButton
-                    categoryType={categoryType} 
+                    categoryType={categoryType}
                     onTransactionAdded={onTransactionAdded}
-                    selectedDate={selectedDate} 
+                    selectedDate={selectedDate}
                 />
             </div>
 
@@ -54,7 +57,7 @@ export default function FinancialCategoryCard({
                     <p className="text-center font-bold">{actualAmount}</p>
                 </div>
             ) : (
-                <div className="border-t flex flex-col flex-shrink-0">
+                <div className={`border-t flex flex-col flex-shrink-0 ${situacion} transition-colors duration-300`}>
                     <div className="w-full flex flex-row justify-center items-center p-1">
                         <p className="text-center w-1/2 text-sm">{actualPercentage}</p>
                         <p className="text-center w-1/2 font-bold text-sm">{maxPercentage}</p>
@@ -68,4 +71,3 @@ export default function FinancialCategoryCard({
         </div>
     );
 }
-

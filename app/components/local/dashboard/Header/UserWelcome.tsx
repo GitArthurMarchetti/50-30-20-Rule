@@ -20,9 +20,8 @@ export default function UserWelcome({
         <div className="flex flex-row items-center h-full">
             <FaUserCircle className="h-full w-auto" />
 
-            <div className="card-transaction ml-5 flex items-center">
+            <div className="card-transaction ml-5 flex items-center"  onClick={onToggleResult}>
                 <button
-                    onClick={onToggleResult}
                     className="mr-2 focus:outline-none"
                     aria-label="Ativar/desativar resultado do mês anterior"
                 >

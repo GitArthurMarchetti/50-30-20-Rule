@@ -77,3 +77,21 @@ export async function GET() {
     );
   }
 }
+
+export async function DELETE(request: Request, { params }: { params: { id: number } }) {
+  try {
+    const { id } = params;
+
+    await prisma.transaction.delete({
+      where: {
+        id: id,
+      },
+    });
+
+    return NextResponse.json({ message: 'Transação deletada com sucesso' }, { status: 200 });
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    return NextResponse.json({ error: 'Erro ao deletar transação' }, { status: 500 });
+  }
+}

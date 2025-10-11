@@ -78,20 +78,36 @@ export async function GET() {
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: number } }) {
+
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
+
+    const transactionId = parseInt(id, 10);
+
+    if (isNaN(transactionId)) {
+      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+    }
 
     await prisma.transaction.delete({
       where: {
-        id: id,
+        id: transactionId,
       },
     });
 
-    return NextResponse.json({ message: 'Transação deletada com sucesso' }, { status: 200 });
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return NextResponse.json(
+      { message: "Transação deletada com sucesso" },
+      { status: 200 }
+    );
   } catch (error) {
-    return NextResponse.json({ error: 'Erro ao deletar transação' }, { status: 500 });
+    console.error("Erro ao deletar transação:", error);
+    return NextResponse.json(
+      { error: "Erro ao deletar transação" },
+      { status: 500 }
+    );
   }
 }

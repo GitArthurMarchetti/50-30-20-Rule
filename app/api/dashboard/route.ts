@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(responseData);
 
   } catch (error) {
-    console.error("Erro na API do Dashboard:", error);
-    return NextResponse.json({ message: "Erro interno do servidor" }, { status: 500 });
+    console.error("Dashboard API Error:", error);
+    return NextResponse.json({ message: "Internal error" }, { status: 500 });
   }
 }

@@ -85,18 +85,18 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
            <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Nova Transação em <span className="capitalize">{categoryType.toLowerCase()}</span></h2>
+            <h2 className="text-xl font-bold mb-4">New Transaction in <span className="capitalize">{categoryType.toLowerCase()}</span></h2>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label htmlFor="description" className="block text-sm font-medium mb-1">Nome</label>
+                <label htmlFor="description" className="block text-sm font-medium mb-1">Name</label>
                 <input type="text" id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
               </div>
               <div className="mb-4">
-                <label htmlFor="amount" className="block text-sm font-medium mb-1">Valor</label>
+                <label htmlFor="amount" className="block text-sm font-medium mb-1">Value</label>
                 <input type="number" id="amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0,00" step="0.01" required />
               </div>
               <div className="mb-4">
-                <label htmlFor="date" className="block text-sm font-medium mb-1">Data</label>
+                <label htmlFor="date" className="block text-sm font-medium mb-1">Date</label>
                 <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
               </div>
               {error && <p className="text-red-500 text-sm mb-4">{error}</p>}

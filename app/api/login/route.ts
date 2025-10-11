@@ -14,12 +14,12 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({ where: { email: emailNorm } });
     if (!user) {
-      return NextResponse.json({ message: "Credenciais inválidas" }, { status: 401 });
+      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
     }
 
     const ok = await bcrypt.compare(String(password || ""), user.password_hash);
     if (!ok) {
-      return NextResponse.json({ message: "Credenciais inválidas" }, { status: 401 });
+      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
     }
 
     const token = await signJwt({ userId: user.id, email: user.email }, "2h");
@@ -37,6 +37,6 @@ export async function POST(req: Request) {
     return res;
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ message: "Erro interno" }, { status: 500 });
+    return NextResponse.json({ message: "Internal error" }, { status: 500 });
   }
 }

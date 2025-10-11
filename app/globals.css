@@ -144,6 +144,10 @@ body {
   border-radius: var(--border-radius);
 }
 
+.transaction-background{
+  background-color: var(--background-transaction);
+}
+
 .card-transaction:hover {
   background-color: var(--background-transaction-hover);
 }

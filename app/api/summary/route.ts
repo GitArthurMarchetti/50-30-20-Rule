@@ -6,19 +6,19 @@ export async function POST() {
   try {
     const session = await getSessionUser();
     if (!session) {
-      return NextResponse.json({ message: "Não autorizado" }, { status: 401 });
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const summary = await getOrCreateMonthlySummary(session.userId, new Date());
 
     return NextResponse.json({
-      message: "Resumo mensal atualizado com sucesso.",
+      message: "Monthly summary updated successfully.",
       summary,
     });
   } catch (error) {
-    console.error("Erro ao atualizar resumo:", error);
+    console.error("Error updating summary:", error);
     return NextResponse.json(
-      { message: "Erro interno do servidor" },
+      { message: "Internal error" },
       { status: 500 }
     );
   }

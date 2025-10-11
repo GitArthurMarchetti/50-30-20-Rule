@@ -2,6 +2,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
+
 export function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
 }
@@ -47,12 +48,12 @@ export default function LoginForm() {
   }
 
   return (
-    <main className="min-h-dvh flex items-center justify-center bg-gray-100 p-4">
-      <form noValidate onSubmit={onSubmit} className="w-full max-w-sm bg-white p-6 rounded-lg shadow space-y-3">
-        <h1 className="text-2xl font-bold text-black">Login</h1>
+    <main className="min-h-dvh flex items-center justify-center  ">
+      <form noValidate onSubmit={onSubmit} className="w-full max-w-sm secondary-background p-6 rounded-lg shadow-lg space-y-5">
+        <h1 className="text-8xl font-bold text-white text-center">LOGIN</h1>
 
         <input
-          className="w-full border rounded px-3 py-2 text-black"
+          className="w-full  rounded px-3 py-2 text-white transaction-background"
           type="email"
           placeholder="email"
           value={email}
@@ -61,7 +62,7 @@ export default function LoginForm() {
         />
 
         <input
-          className="w-full border rounded px-3 py-2 text-black"
+          className="w-full  rounded px-3 py-2 text-white transaction-background"
           type="password"
           placeholder="password"
           value={password}
@@ -72,7 +73,7 @@ export default function LoginForm() {
         {err && <p className="text-red-600 text-sm">{err}</p>}
 
         <button
-          className="w-full py-2 rounded bg-blue-600 text-white font-semibold disabled:opacity-60"
+          className="w-full py-2 rounded bg-gray-300 text-black font-semibold disabled:opacity-50 "
           disabled={loading}
           type="submit"
         >

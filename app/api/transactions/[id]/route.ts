@@ -3,22 +3,17 @@ import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
 import { prisma } from "@/prisma/db";
 import { NextRequest, NextResponse } from "next/server";
 
-/**
- * @method POST
- * @route /api/transactions
- * @description Cria uma nova transação.
- */
 export async function POST(request: NextRequest) {
   try {
       const session = await getSessionUser();
       if (!session) {
-          return NextResponse.json({ message: "Não autorizado" }, { status: 401 });
+          return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
       }
 
       const body = await request.json();
 
       if (!body.description || body.amount == null || !body.type || !body.date) {
-          return NextResponse.json({ message: "Dados da transação incompletos" }, { status: 400 });
+          return NextResponse.json({ message: "Incomplete transaction data" }, { status: 400 });
       }
 
       const transactionDate = new Date(body.date);
@@ -38,8 +33,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(newTransaction, { status: 201 });
 
   } catch (error) {
-      console.error("Erro ao criar transação:", error);
-      return NextResponse.json({ message: "Ocorreu um erro no servidor." }, { status: 500 });
+      console.error("Error creating transaction:", error);
+      return NextResponse.json({ message: "An error occurred on the server." }, { status: 500 });
   }
 }
 
@@ -53,7 +48,7 @@ export async function GET() {
     const session = await getSessionUser();
     if (!session) {
       return NextResponse.json(
-        { message: "Não autorizado" },
+        { message: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -70,9 +65,9 @@ export async function GET() {
     return NextResponse.json(transactions);
 
   } catch (error) {
-    console.error("Erro ao buscar transações:", error);
+    console.error("Error fetching transactions:", error);
     return NextResponse.json(
-      { message: "Ocorreu um erro no servidor." },
+      { message: "An error occurred on the server." },
       { status: 500 }
     );
   }
@@ -90,7 +85,7 @@ export async function DELETE(
     const transactionId = parseInt(id, 10);
 
     if (isNaN(transactionId)) {
-      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
     await prisma.transaction.delete({
@@ -100,13 +95,13 @@ export async function DELETE(
     });
 
     return NextResponse.json(
-      { message: "Transação deletada com sucesso" },
+      { message: "Transaction deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Erro ao deletar transação:", error);
+    console.error("Error deleting transaction:", error);
     return NextResponse.json(
-      { error: "Erro ao deletar transação" },
+      { error: "Error deleting transaction" },
       { status: 500 }
     );
   }

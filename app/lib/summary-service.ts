@@ -4,20 +4,6 @@ import { Decimal } from "@prisma/client/runtime/library";
 
 export async function getOrCreateMonthlySummary(userId: number, dateForMonth: Date) {
   const firstDayOfMonth = new Date(dateForMonth.getFullYear(), dateForMonth.getMonth(), 1);
-
-  const existingSummary = await prisma.monthlySummary.findUnique({
-    where: {
-      userId_month_year: {
-        userId: userId,
-        month_year: firstDayOfMonth,
-      }
-    },
-  });
-
-  if (existingSummary) {
-    return existingSummary;
-  }
-
   const lastDayOfMonth = new Date(dateForMonth.getFullYear(), dateForMonth.getMonth() + 1, 0, 23, 59, 59);
 
   const transactions = await prisma.transaction.findMany({
@@ -52,18 +38,27 @@ export async function getOrCreateMonthlySummary(userId: number, dateForMonth: Da
 
   const final_balance = total_income.sub(needs_expenses).sub(wants_expenses);
 
-  const newSummary = await prisma.monthlySummary.create({
-    data: {
-      userId: userId,
-      month_year: firstDayOfMonth,
-      total_income,
-      needs_expenses,
-      wants_expenses,
-      total_savings,
-      total_investments,
-      final_balance,
+  const summaryData = {
+    userId: userId,
+    month_year: firstDayOfMonth,
+    total_income,
+    needs_expenses,
+    wants_expenses,
+    total_savings,
+    total_investments,
+    final_balance,
+  };
+
+  const summary = await prisma.monthlySummary.upsert({
+    where: {
+      userId_month_year: {
+        userId: userId,
+        month_year: firstDayOfMonth,
+      }
     },
+    update: summaryData, 
+    create: summaryData, 
   });
 
-  return newSummary;
+  return summary;
 }

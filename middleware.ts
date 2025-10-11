@@ -4,13 +4,7 @@ import type { NextRequest } from "next/server";
 import { verifyJwt } from "./app/lib/jwt";
 
 
-/**
- * Libera APENAS:
- * - /login
- * - /api/login (para poder logar)
- * - arquivos estáticos / _next
- * - favicon/robots/sitemap/imagens etc.
- */
+
 function isPublicPath(pathname: string) {
   return (
     pathname === "/login" ||

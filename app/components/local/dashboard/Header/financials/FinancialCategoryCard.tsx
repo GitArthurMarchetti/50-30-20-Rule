@@ -1,6 +1,7 @@
 'use client'
-import React from "react"; // Removi useState, não é mais necessário
-import AddTransactionButton from "../../../TransactionButton";
+import React from "react";
+
+import AddTransactionButton from "../../../TransactionButton"; 
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { FinancialCategoryCardProps } from "@/app/types/financialsType";
 
@@ -30,7 +31,15 @@ export default function FinancialCategoryCard({
 
     const categoryColorClass = getCategoryColorClass(title);
 
-    const situacion = actualPercentage > maxPercentage ? "text-expense bg-opacity-30 font-bold " : "bg-transparent";
+    const actual = parseFloat(actualPercentage);
+    const max = parseFloat(maxPercentage);
+    
+    const situacion = actual > max
+        ? "text-expense bg-opacity-30 font-bold"     
+        : actual === max
+            ? "text-saving bg-opacity-30 font-bold"  
+            : "bg-transparent text-white";           
+
 
     return (
         <div className="secondary-background flex flex-col h-full w-full rounded-lg overflow-hidden">

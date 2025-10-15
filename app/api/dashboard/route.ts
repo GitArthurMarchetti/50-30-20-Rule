@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
     });
 
     let baseIncome = currentMonthTransactions.filter(t => t.type === 'INCOME').reduce((acc, t) => acc.add(t.amount), new Decimal(0));
+
     if (includeResult) {
       baseIncome = baseIncome.add(lastMonthsResultValue);
     }
@@ -61,7 +62,8 @@ export async function GET(request: NextRequest) {
     const needsExpenses = currentMonthTransactions.filter(t => t.type === 'NEEDS').reduce((s, t) => s.add(t.amount), new Decimal(0));
     const wantsExpenses = currentMonthTransactions.filter(t => t.type === 'WANTS').reduce((s, t) => s.add(t.amount), new Decimal(0));
     const reservesTotal = currentMonthTransactions.filter(t => t.type === 'RESERVES').reduce((s, t) => s.add(t.amount), new Decimal(0));
-    const result = baseIncome.sub(needsExpenses).sub(wantsExpenses);
+    const investmentsTotal = currentMonthTransactions.filter(t => t.type === 'INVESTMENTS').reduce((s, t) => s.add(t.amount), new Decimal(0));
+    const result = baseIncome.sub(needsExpenses).sub(wantsExpenses).sub(reservesTotal).sub(investmentsTotal);
 
     const responseData = {
       cards: {

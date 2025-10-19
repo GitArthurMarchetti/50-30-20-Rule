@@ -9,7 +9,7 @@ export function formatCurrency(
   amount: number | Decimal,
   options: CurrencyOptions = {}
 ): string {
-  const { locale = "pt-BR", currency = "BRL" } = options;
+  const { locale = "en", currency = "CAD" } = options;
 
   const numericAmount = typeof amount === 'number' ? amount : amount.toNumber();
 

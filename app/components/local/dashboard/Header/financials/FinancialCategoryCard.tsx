@@ -2,7 +2,7 @@
 import React from "react";
 
 import AddTransactionButton from "../../../TransactionButton"; 
-import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { FinancialCategoryCardProps } from "@/app/types/financialsType";
 
 

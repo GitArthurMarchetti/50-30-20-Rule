@@ -1,8 +1,13 @@
 'use client';
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { FaAngleDown } from "react-icons/fa";
 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 interface MonthSelectorProps {
     selectedDate: Date;
@@ -15,26 +20,30 @@ export default function MonthSelector({ selectedDate, onMonthChange }: MonthSele
         "July", "August", "September", "October", "November", "December"
     ];
 
-    const currentMonthName = months[selectedDate.getMonth()];
+    const handleMonthChange = (monthIndexAsString: string) => {
+        const monthIndex = parseInt(monthIndexAsString, 10);
+        onMonthChange(monthIndex);
+    };
+
+    const currentMonthValue = String(selectedDate.getMonth());
 
     return (
         <header className="flex h-20 w-auto items-center justify-end p-4">
-            <DropdownMenu>
-                <DropdownMenuTrigger className="flex flex-row items-center justify-center rounded-md  bg-transparent px-4 py-2 text-sm font-medium ">
-                    {currentMonthName} <FaAngleDown className="ml-2 h-4 w-4" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-25 rounded-md border bg-white p-1 text-black shadow-md">
+            <Select value={currentMonthValue} onValueChange={handleMonthChange}>
+                <SelectTrigger className="w-[180px] border-none     transaction-background cursor-pointer">
+                    <SelectValue placeholder="Select a month" />
+                </SelectTrigger>
+                <SelectContent >
                     {months.map((month, index) => (
-                        <DropdownMenuItem
+                        <SelectItem
                             key={month}
-                            onSelect={() => onMonthChange(index)}
-                            className="cursor-pointer rounded-sm px-2 py-1.5 text-sm outline-none"
+                            value={String(index)}
                         >
                             {month}
-                        </DropdownMenuItem>
+                        </SelectItem>
                     ))}
-                </DropdownMenuContent>
-            </DropdownMenu>
+                </SelectContent>
+            </Select>
         </header>
     );
 }

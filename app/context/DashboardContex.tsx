@@ -3,7 +3,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { DashboardData } from '../types/dashboardTypes';
 
-
 interface DashboardContextType {
   data: DashboardData | null;
   isLoading: boolean;
@@ -21,7 +20,7 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 
 export const DashboardProvider = ({ children }: { children: ReactNode }) => {
 
-    const [data, setData] = useState<DashboardData | null>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -29,11 +28,22 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
 
   const fetchData = useCallback(async (date: Date, resultIncluded: boolean) => {
+
+    // --- CORREÇÃO AQUI ---
+    // A API deve esperar o mês no formato "YYYY-MM" (1-indexado)
     const year = date.getFullYear();
-    const month = date.getMonth();
+    // 1. Converte de 0-indexado (0-11) para 1-indexado (1-12)
+    const month = date.getMonth() + 1;
+    // 2. Garante "09", "10", etc.
+    const monthString = String(month).padStart(2, '0');
+    // 3. Cria o formato "YYYY-MM"
+    const yearMonth = `${year}-${monthString}`;
+    // --- FIM DA CORREÇÃO ---
+
     try {
       setError(null);
-      const response = await fetch(`/api/dashboard?year=${year}&month=${month}&includeResult=${resultIncluded}`);
+      // 4. Usa o formato de URL correto
+      const response = await fetch(`/api/dashboard?month=${yearMonth}&includeResult=${resultIncluded}`);
       if (!response.ok) throw new Error('Falha ao buscar os dados.');
       const resultData = await response.json();
       setData(resultData);
@@ -57,7 +67,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
       return newDate;
     });
   };
-  
+
   const handleToggleResult = () => {
     setIncludeResult(prevState => !prevState);
   };
@@ -106,3 +116,4 @@ export const useDashboard = (): DashboardContextType => {
   }
   return context;
 };
+

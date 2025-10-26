@@ -4,6 +4,9 @@ export interface TransactionItem {
   id: number;
   description: string;
   amount: number;
+  date: Date;
+  type: TransactionType; 
+  categoryId: number | null; 
 }
 
 export interface FinancialCategory {
@@ -36,15 +39,15 @@ export interface DashboardData {
 
 
 export interface SidebarProps {
-    financialStatement: {
-        revenue: number;
-        fixedExpenses: number;
-        variableExpenses: number;
-        reserves: number;
-        result: number;
-    };
-    selectedDate: Date;
-    onMonthChange: (monthIndex: number) => void;
+  financialStatement: {
+    revenue: number;
+    fixedExpenses: number;
+    variableExpenses: number;
+    reserves: number;
+    result: number;
+  };
+  selectedDate: Date;
+  onMonthChange: (monthIndex: number) => void;
 }
 
 

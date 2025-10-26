@@ -1,7 +1,9 @@
+import AnnualLink from "./AnnualLink";
 import UserWelcome from "./UserWelcome";
 
 interface DashboardHeaderProps {
   lastMonthsResult: number;
+  selectedDate: Date;
   isResultIncluded: boolean;
   onToggleResult: () => void;
 }
@@ -9,6 +11,7 @@ interface DashboardHeaderProps {
 export default function DashboardHeader({
   lastMonthsResult,
   isResultIncluded,
+  selectedDate,
   onToggleResult,
 }: DashboardHeaderProps) {
   return (
@@ -18,10 +21,10 @@ export default function DashboardHeader({
         isResultIncluded={isResultIncluded}
         onToggleResult={onToggleResult}
       />
-{/* 
+
       <div className="flex flex-wrap items-center gap-4">
-        <DatabaseLink />
-      </div> */}
+        <AnnualLink selectedDate={selectedDate} />
+      </div>
 
     </header>
   );

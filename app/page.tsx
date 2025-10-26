@@ -1,30 +1,64 @@
-"use client";
-
+"use client"; 
+import { DashboardProvider, useDashboard } from "./context/DashboardContex";
+import { useState, useEffect } from "react";
 import DashboardLayout from "./layout/DashboardLayout";
 import Sidebar from "./components/local/dashboard/Header/Sidebar";
 import DashboardHeader from "./components/local/dashboard/Header/DashboardHeader";
 import FinancialCategoryCard from "./components/local/dashboard/Header/financials/FinancialCategoryCard";
 import FinancialEntryRow from "./components/local/dashboard/Header/financials/FinancialEntryRow";
-import { DashboardProvider, useDashboard } from "./context/DashboardContex";
 
+interface Category {
+  id: number;
+  name: string;
+  type: string; 
+}
 
 function DashboardContent() {
 
-  const { 
-    isLoading, 
-    error, 
-    data, 
-    selectedDate, 
+  const {
+    isLoading,
+    error,
+    data,
+    selectedDate,
     includeResult,
     deletingIds,
-    handleMonthChange, 
-    handleToggleResult, 
-    refetchData, 
-    handleDeleteTransaction 
+    handleMonthChange,
+    handleToggleResult,
+    refetchData,
+    handleDeleteTransaction
   } = useDashboard();
 
 
-  if (isLoading || !data) {
+  const [categoryMap, setCategoryMap] = useState<Map<number, string>>(new Map());
+  const [isCategoryLoading, setIsCategoryLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      setIsCategoryLoading(true);
+      try {
+        const res = await fetch('/api/categories');
+        const categories: Category[] = await res.json();
+        
+        const newMap = new Map<number, string>();
+        categories.forEach(cat => {
+          newMap.set(cat.id, cat.name);
+        });
+        setCategoryMap(newMap);
+
+      } catch (e) {
+        console.error("Falha ao buscar categorias", e);
+      } finally {
+        setIsCategoryLoading(false);
+      }
+    }
+    
+    fetchCategories();
+  }, []); // Roda uma vez quando o componente carrega
+  // --- FIM DA SOLUÇÃO ---
+
+
+  // Unimos os dois loadings
+  if (isLoading || isCategoryLoading || !data) {
     return <p className="text-white text-center mt-10">Carregando...</p>;
   }
 
@@ -37,12 +71,12 @@ function DashboardContent() {
   const splitCategories = [reserves, investments];
 
   return (
-    <DashboardLayout 
+    <DashboardLayout
       sidebar={
-        <Sidebar 
-          selectedDate={selectedDate} 
-          onMonthChange={handleMonthChange} 
-          financialStatement={data.financialStatement} 
+        <Sidebar
+          selectedDate={selectedDate}
+          onMonthChange={handleMonthChange}
+          financialStatement={data.financialStatement}
         />
       }
     >
@@ -50,6 +84,7 @@ function DashboardContent() {
         lastMonthsResult={data.lastMonthsResult}
         isResultIncluded={includeResult}
         onToggleResult={handleToggleResult}
+        selectedDate={selectedDate}
       />
       <section className="h-8/9 w-full mt-auto flex flex-row justify-evenly gap-4">
         {mainCategories.map((category) => (
@@ -66,9 +101,15 @@ function DashboardContent() {
                   id={item.id}
                   label={item.description}
                   amount={item.amount}
-                  categoryTitle={category.title}
-                  onDelete={handleDeleteTransaction} 
+                  categoryTitle={category.title} 
+                  onDelete={handleDeleteTransaction}
                   isDeleting={deletingIds.includes(item.id)}
+
+                  date={item.date}
+                  type={item.type}
+                  categoryId={item.categoryId}
+                  
+                  categoryMap={categoryMap}
                 />
               ))}
             </FinancialCategoryCard>
@@ -92,6 +133,12 @@ function DashboardContent() {
                     categoryTitle={category.title}
                     onDelete={handleDeleteTransaction}
                     isDeleting={deletingIds.includes(item.id)}
+
+                    date={item.date}
+                    type={item.type}
+                    categoryId={item.categoryId}
+
+                    categoryMap={categoryMap}
                   />
                 ))}
               </FinancialCategoryCard>

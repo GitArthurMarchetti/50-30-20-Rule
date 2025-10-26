@@ -1,28 +1,27 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../app/generated/prisma"
-  binaryTargets = ["native"] 
+  provider      = "prisma-client-js"
+  output        = "../app/generated/prisma"
+  binaryTargets = ["native"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-
-  directUrl      = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-
 model User {
-  id                      Int      @id @default(autoincrement())
-  username                String   @unique
-  email                   String   @unique
-  password_hash           String
-  previous_month_balance  Decimal? @db.Decimal(10, 2)
+  id                     Int      @id @default(autoincrement())
+  username               String   @unique
+  email                  String   @unique
+  password_hash          String
+  previous_month_balance Decimal? @db.Decimal(10, 2)
 
   transactions Transaction[]
   summaries    MonthlySummary[]
+  categories   Category[]
 
-  @@map("users") 
+  @@map("users")
 }
 
 enum TransactionType {
@@ -34,32 +33,52 @@ enum TransactionType {
   INVESTMENTS
 }
 
-model Transaction {
-  id          Int              @id @default(autoincrement())
-  description String
-  amount      Decimal          @db.Decimal(10, 2)
-  date        DateTime         @default(now())
-  type        TransactionType 
+model Category {
+  id     Int    @id @default(autoincrement())
+  name   String
   
+  type   TransactionType
+  
+  userId Int
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions Transaction[]
+
+  @@unique([userId, name, type])
+  @@map("categories")
+}
+model Transaction {
+  id          Int             @id @default(autoincrement())
+  description String
+  amount      Decimal         @db.Decimal(10, 2)
+  date        DateTime        @default(now())
+  type        TransactionType
+
   userId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  categoryId Int? 
+  
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@unique([id, userId]) 
   @@map("transactions")
 }
 
 model MonthlySummary {
-  id                 Int      @id @default(autoincrement())
-  month_year         DateTime @db.Date 
-  total_income       Decimal  @db.Decimal(10, 2)
-  needs_expenses     Decimal  @db.Decimal(10, 2)
-  wants_expenses     Decimal  @db.Decimal(10, 2)
-  total_savings      Decimal  @db.Decimal(10, 2)
-  total_investments  Decimal  @db.Decimal(10, 2)
-  final_balance      Decimal  @db.Decimal(10, 2)
+  id                Int      @id @default(autoincrement())
+  month_year        DateTime @db.Date
+  total_income      Decimal  @db.Decimal(10, 2)
+  needs_expenses    Decimal  @db.Decimal(10, 2)
+  wants_expenses    Decimal  @db.Decimal(10, 2)
+  total_savings     Decimal  @db.Decimal(10, 2)
+  total_investments Decimal  @db.Decimal(10, 2)
+  final_balance     Decimal  @db.Decimal(10, 2)
 
   userId Int
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, month_year]) 
-  @@map("monthly_summaries")     
+  @@unique([userId, month_year])
+  @@map("monthly_summaries")
 }
+

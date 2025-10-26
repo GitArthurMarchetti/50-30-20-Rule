@@ -6,7 +6,7 @@ export default function FinancialStatementRow({ label, amount, percentage, isTot
 
     const situationClass = isBad ? 'text-red-500 font-bold bg-red-500 bg-opacity-20 rounded-md' : '';
 
-    const rowClasses = `w-full flex flex-row justify-between card-transaction items-center p-2 ${isTotal ? 'h-5/6 my-auto' : ''} ${situationClass}`; 
+    const rowClasses = `w-full flex flex-row justify-between  !cursor-default transaction-background items-center p-3 rounded-sm ${isTotal ? 'h-5/6 my-auto' : ''} ${situationClass}`; 
 
     
     return (

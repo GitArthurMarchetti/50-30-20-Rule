@@ -3,46 +3,7 @@ import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
 import { prisma } from "@/prisma/db";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
-  try {
-      const session = await getSessionUser();
-      if (!session) {
-          return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-      }
 
-      const body = await request.json();
-
-      if (!body.description || body.amount == null || !body.type || !body.date) {
-          return NextResponse.json({ message: "Incomplete transaction data" }, { status: 400 });
-      }
-
-      const transactionDate = new Date(body.date);
-
-      const newTransaction = await prisma.transaction.create({
-          data: {
-              description: body.description,
-              amount: body.amount,
-              type: body.type,
-              date: transactionDate, 
-              userId: session.userId,
-          },
-      });
-
-      await getOrCreateMonthlySummary(session.userId, transactionDate);
-
-      return NextResponse.json(newTransaction, { status: 201 });
-
-  } catch (error) {
-      console.error("Error creating transaction:", error);
-      return NextResponse.json({ message: "An error occurred on the server." }, { status: 500 });
-  }
-}
-
-/**
- * @method GET
- * @route /api/transactions
- * @description Lista todas as transações do usuário.
- */
 export async function GET() {
   try {
     const session = await getSessionUser();
@@ -73,8 +34,6 @@ export async function GET() {
   }
 }
 
-
-
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -102,6 +61,60 @@ export async function DELETE(
     console.error("Error deleting transaction:", error);
     return NextResponse.json(
       { error: "Error deleting transaction" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getSessionUser();
+    if (!session) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const transactionId = parseInt(params.id, 10);
+    if (isNaN(transactionId)) {
+      return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+    }
+
+    // 1. Pega os novos dados do body
+    const body = await request.json();
+    const { description, amount, date, categoryId } = body;
+
+    // 2. Validação simples (pode melhorar)
+    if (!description || !amount || !date) {
+      return NextResponse.json(
+        { message: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    const updatedTransaction = await prisma.transaction.update({
+      where: {
+        id_userId: {
+          id: transactionId,
+          userId: session.userId,
+        },
+      },
+      data: {
+        description: String(description),
+        amount: parseFloat(amount),
+        date: new Date(date),
+        categoryId: categoryId ? parseInt(categoryId, 10) : null,
+      },
+    });
+
+    await getOrCreateMonthlySummary(session.userId, updatedTransaction.date);
+
+    return NextResponse.json(updatedTransaction);
+  } catch (error) {
+    console.error(`Error updating transaction ${params.id}:`, error);
+    return NextResponse.json(
+      { message: "Internal error" },
       { status: 500 }
     );
   }

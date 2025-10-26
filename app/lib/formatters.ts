@@ -6,15 +6,21 @@ type CurrencyOptions = {
 };
 
 export function formatCurrency(
-  amount: number | Decimal,
+  amount: number | Decimal | null | undefined, 
   options: CurrencyOptions = {}
 ): string {
   const { locale = "en", currency = "CAD" } = options;
 
-  const numericAmount = typeof amount === 'number' ? amount : amount.toNumber();
+  let numericAmount = 0; 
+  if (typeof amount === 'number') {
+    numericAmount = amount;
+  } else if (amount && typeof amount.toNumber === 'function') {
+    numericAmount = amount.toNumber();
+  }
 
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: currency,
   }).format(numericAmount);
 }
+

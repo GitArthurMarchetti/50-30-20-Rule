@@ -36,7 +36,11 @@ export async function getOrCreateMonthlySummary(userId: number, dateForMonth: Da
     .filter(t => t.type === TransactionType.INVESTMENTS)
     .reduce((sum, t) => sum.add(t.amount), new Decimal(0));
 
-  const final_balance = total_income.sub(needs_expenses).sub(wants_expenses);
+  const final_balance = total_income
+    .sub(needs_expenses)
+    .sub(wants_expenses)
+    .sub(total_savings)       
+    .sub(total_investments);  
 
   const summaryData = {
     userId: userId,
@@ -46,7 +50,7 @@ export async function getOrCreateMonthlySummary(userId: number, dateForMonth: Da
     wants_expenses,
     total_savings,
     total_investments,
-    final_balance,
+    final_balance, 
   };
 
   const summary = await prisma.monthlySummary.upsert({

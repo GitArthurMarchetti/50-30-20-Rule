@@ -1,7 +1,7 @@
 'use client'
 import React from "react";
 
-import AddTransactionButton from "../../../TransactionButton"; 
+import AddTransactionButton from "../../../modal/TransactionButton"; 
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { FinancialCategoryCardProps } from "@/app/types/financialsType";
 

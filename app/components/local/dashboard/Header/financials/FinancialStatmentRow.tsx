@@ -1,24 +1,30 @@
 import { formatCurrency } from "@/app/lib/formatters";
+// O nome do arquivo original era FinancialStatmentRow.tsx, 
+// mas o import sugere que o componente FinancialStatementRow
+// está em *outro* arquivo (FinancialStatmentRowProps.tsx).
+// Assumindo que o nome do arquivo que você colou está correto:
 import FinancialStatementRow from "./FinancialStatmentRowProps";
+
 interface FinancialStatementProps {
-  revenue: number;
-  fixedExpenses: number;
-  variableExpenses: number;
-  reserves: number;
-  result: number;
+  totalIncome: number;
+  totalNeeds: number;
+  totalWants: number;
+  totalReserves: number;
+  finalBalance: number;
 }
 
 export default function FinancialStatement({
-  revenue,
-  fixedExpenses,
-  variableExpenses,
-  reserves,
-  result,
+  totalIncome,
+  totalNeeds,
+  totalWants,
+  totalReserves,
+  finalBalance,
 }: FinancialStatementProps) {
 
   const isRowInBadSituation = (label: string, value: number) => {
-    if (revenue === 0) return false;
-    const percentageOfRevenue = (value / revenue) * 100;
+    // CORRIGIDO: de revenue para totalIncome
+    if (totalIncome === 0) return false;
+    const percentageOfRevenue = (value / totalIncome) * 100;
 
     switch (label) {
       case "E. Fixed":
@@ -26,45 +32,52 @@ export default function FinancialStatement({
       case "E. Variable":
         return percentageOfRevenue > 30;
       case "Result":
-        return percentageOfRevenue < 0;
+        return percentageOfRevenue < 0; // Verifica se o resultado é negativo
       default:
         return false;
     }
   };
 
   const calculatePercentage = (value: number) => {
-    if (revenue === 0) return "0%";
-    const percentage = (value / revenue) * 100;
+    // CORRIGIDO: de revenue para totalIncome
+    if (totalIncome === 0) return "0%";
+    const percentage = (value / totalIncome) * 100;
     return `${percentage.toFixed(0)}%`;
   };
 
   const statementData = {
     rows: [
-      { label: "Revenue", amount: formatCurrency(revenue), percentage: "100%", isBad: false }, // Receita nunca é "ruim"
+      // CORRIGIDO: de revenue para totalIncome
+      { label: "Revenue", amount: formatCurrency(totalIncome), percentage: "100%", isBad: false },
       {
         label: "E. Fixed",
-        amount: formatCurrency(fixedExpenses),
-        percentage: calculatePercentage(fixedExpenses),
-        isBad: isRowInBadSituation("E. Fixed", fixedExpenses) 
+        // CORRIGIDO: de fixedExpenses para totalNeeds
+        amount: formatCurrency(totalNeeds),
+        percentage: calculatePercentage(totalNeeds),
+        isBad: isRowInBadSituation("E. Fixed", totalNeeds)
       },
       {
         label: "E. Variable",
-        amount: formatCurrency(variableExpenses),
-        percentage: calculatePercentage(variableExpenses),
-        isBad: isRowInBadSituation("E. Variable", variableExpenses) 
+        // CORRIGIDO: de variableExpenses para totalWants
+        amount: formatCurrency(totalWants),
+        percentage: calculatePercentage(totalWants),
+        isBad: isRowInBadSituation("E. Variable", totalWants)
       },
       {
         label: "Reserves",
-        amount: formatCurrency(reserves),
-        percentage: calculatePercentage(reserves),
-        isBad: isRowInBadSituation("Reserves", reserves)
+        // CORRIGIDO: de reserves para totalReserves
+        amount: formatCurrency(totalReserves),
+        percentage: calculatePercentage(totalReserves),
+        isBad: isRowInBadSituation("Reserves", totalReserves) // A regra 'Reserves' não está definida em isRowInBadSituation, sempre será 'false'
       },
     ],
     result: {
       label: "Result",
-      amount: formatCurrency(result),
-      percentage: calculatePercentage(result),
-      isBad: isRowInBadSituation("E. Variable", variableExpenses) 
+      // CORRIGIDO: de result para finalBalance
+      amount: formatCurrency(finalBalance),
+      percentage: calculatePercentage(finalBalance),
+      // CORRIGIDO: Bug lógico e nomes de variáveis
+      isBad: isRowInBadSituation("Result", finalBalance)
     },
   };
 

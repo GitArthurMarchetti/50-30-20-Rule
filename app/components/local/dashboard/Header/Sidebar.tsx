@@ -11,7 +11,13 @@ export default function Sidebar({ financialStatement, selectedDate, onMonthChang
                 onMonthChange={onMonthChange}
             />
 
-            <FinancialStatement {...financialStatement} />
+            <FinancialStatement
+                totalIncome={financialStatement.revenue}
+                totalNeeds={financialStatement.fixedExpenses}
+                totalWants={financialStatement.variableExpenses}
+                totalReserves={financialStatement.reserves}
+                finalBalance={financialStatement.result}
+            />
         </div>
     );
 }

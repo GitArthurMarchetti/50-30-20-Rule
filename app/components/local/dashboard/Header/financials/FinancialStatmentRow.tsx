@@ -1,8 +1,4 @@
 import { formatCurrency } from "@/app/lib/formatters";
-// O nome do arquivo original era FinancialStatmentRow.tsx, 
-// mas o import sugere que o componente FinancialStatementRow
-// está em *outro* arquivo (FinancialStatmentRowProps.tsx).
-// Assumindo que o nome do arquivo que você colou está correto:
 import FinancialStatementRow from "./FinancialStatmentRowProps";
 
 interface FinancialStatementProps {
@@ -22,7 +18,6 @@ export default function FinancialStatement({
 }: FinancialStatementProps) {
 
   const isRowInBadSituation = (label: string, value: number) => {
-    // CORRIGIDO: de revenue para totalIncome
     if (totalIncome === 0) return false;
     const percentageOfRevenue = (value / totalIncome) * 100;
 
@@ -32,14 +27,13 @@ export default function FinancialStatement({
       case "E. Variable":
         return percentageOfRevenue > 30;
       case "Result":
-        return percentageOfRevenue < 0; // Verifica se o resultado é negativo
+        return percentageOfRevenue < 0; 
       default:
         return false;
     }
   };
 
   const calculatePercentage = (value: number) => {
-    // CORRIGIDO: de revenue para totalIncome
     if (totalIncome === 0) return "0%";
     const percentage = (value / totalIncome) * 100;
     return `${percentage.toFixed(0)}%`;
@@ -47,36 +41,30 @@ export default function FinancialStatement({
 
   const statementData = {
     rows: [
-      // CORRIGIDO: de revenue para totalIncome
       { label: "Revenue", amount: formatCurrency(totalIncome), percentage: "100%", isBad: false },
       {
         label: "E. Fixed",
-        // CORRIGIDO: de fixedExpenses para totalNeeds
         amount: formatCurrency(totalNeeds),
         percentage: calculatePercentage(totalNeeds),
         isBad: isRowInBadSituation("E. Fixed", totalNeeds)
       },
       {
         label: "E. Variable",
-        // CORRIGIDO: de variableExpenses para totalWants
         amount: formatCurrency(totalWants),
         percentage: calculatePercentage(totalWants),
         isBad: isRowInBadSituation("E. Variable", totalWants)
       },
       {
         label: "Reserves",
-        // CORRIGIDO: de reserves para totalReserves
         amount: formatCurrency(totalReserves),
         percentage: calculatePercentage(totalReserves),
-        isBad: isRowInBadSituation("Reserves", totalReserves) // A regra 'Reserves' não está definida em isRowInBadSituation, sempre será 'false'
+        isBad: isRowInBadSituation("Reserves", totalReserves) 
       },
     ],
     result: {
       label: "Result",
-      // CORRIGIDO: de result para finalBalance
       amount: formatCurrency(finalBalance),
       percentage: calculatePercentage(finalBalance),
-      // CORRIGIDO: Bug lógico e nomes de variáveis
       isBad: isRowInBadSituation("Result", finalBalance)
     },
   };

@@ -15,8 +15,8 @@ interface AnnualSummaryData {
 export default function AnnualSummary() {
     const [summary, setSummary] = useState<AnnualSummaryData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-
+    const [selectedYear] = useState(new Date().getFullYear());
+    
     useEffect(() => {
         const fetchAnnualSummary = async () => {
             setIsLoading(true);

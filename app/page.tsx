@@ -53,11 +53,9 @@ function DashboardContent() {
     }
     
     fetchCategories();
-  }, []); // Roda uma vez quando o componente carrega
-  // --- FIM DA SOLUÇÃO ---
+  }, []);
 
 
-  // Unimos os dois loadings
   if (isLoading || isCategoryLoading || !data) {
     return <p className="text-white text-center mt-10">Carregando...</p>;
   }

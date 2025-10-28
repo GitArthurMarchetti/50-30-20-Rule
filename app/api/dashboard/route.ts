@@ -5,14 +5,12 @@ import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
 import { prisma } from "@/prisma/db";
 import { Decimal } from "@prisma/client/runtime/library";
 import { NextRequest, NextResponse } from "next/server";
-// Importa o tipo da sua TransactionItem
-import { TransactionItem } from "@/app/types/dashboardTypes"; 
+import { TransactionItem, DashboardData } from "@/app/types/dashboardTypes"; 
 
-// A função de cálculo agora passa TODOS os dados da transação
 const calculateCategoryData = (
   type: TransactionType,
   targetPercentage: number,
-  transactions: Transaction[], 
+  transactions: Transaction[],
   baseIncome: Decimal
 ) => {
   const categoryTransactions = transactions.filter((t) => t.type === type);
@@ -37,9 +35,9 @@ const calculateCategoryData = (
         id: t.id,
         description: t.description,
         amount: t.amount.toNumber(),
-        date: t.date, 
-        type: t.type, 
-        categoryId: t.categoryId, 
+        date: t.date,
+        type: t.type,
+        categoryId: t.categoryId,
       })
     ),
   };
@@ -53,7 +51,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const monthParam = searchParams.get("month"); 
+    const monthParam = searchParams.get("month");
     const includeResult = searchParams.get("includeResult") !== "false";
 
     if (!monthParam) {
@@ -63,17 +61,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-  
-    const [year, monthIndex] = monthParam.split("-").map(Number); // ex: [2024, 10]
+    const [year, monthIndex] = monthParam.split("-").map(Number);
 
     const firstDayOfPreviousMonth = new Date(year, monthIndex - 2, 1);
+    
     const previousMonthSummary = await getOrCreateMonthlySummary(
       session.userId,
       firstDayOfPreviousMonth
     );
-    const lastMonthsResultValue = previousMonthSummary.final_balance;
+    const lastMonthsResultValue = previousMonthSummary.final_balance; 
 
-    // Mês atual (Mês 10 -> Índice 9)
     const firstDayOfCurrentMonth = new Date(year, monthIndex - 1, 1);
     const lastDayOfCurrentMonth = new Date(year, monthIndex, 0, 23, 59, 59);
 
@@ -108,11 +105,14 @@ export async function GET(request: NextRequest) {
     const investmentsTotal = currentMonthTransactions
       .filter((t) => t.type === "INVESTMENTS")
       .reduce((s, t) => s.add(t.amount), new Decimal(0));
-    
-    // O resultado/balanço final deve subtrair APENAS despesas (Needs/Wants)
-    const result = baseIncome.sub(needsExpenses).sub(wantsExpenses).sub(reservesTotal).sub(investmentsTotal);
 
-    const responseData = {
+    const result = baseIncome
+      .sub(needsExpenses)
+      .sub(wantsExpenses)
+      .sub(reservesTotal)
+      .sub(investmentsTotal);
+
+    const responseData: DashboardData = {
       cards: {
         income: calculateCategoryData(
           TransactionType.INCOME,
@@ -147,13 +147,11 @@ export async function GET(request: NextRequest) {
       },
 
       financialStatement: {
-        totalIncome: baseIncome.toNumber(), // Receita
-        totalNeeds: needsExpenses.toNumber(), // Despesas Fixas (Needs)
-        totalWants: wantsExpenses.toNumber(), // Despesas Variáveis (Wants)
-        totalReserves: reservesTotal.toNumber(), // Reservas
-        totalInvestments: investmentsTotal.toNumber(), // Investimentos
-        totalExpenses: needsExpenses.add(wantsExpenses).toNumber(), // Despesa Total
-        finalBalance: result.toNumber(), // Saldo Final
+        revenue: baseIncome.toNumber(),          
+        fixedExpenses: needsExpenses.toNumber(),  
+        variableExpenses: wantsExpenses.toNumber(), 
+        reserves: reservesTotal.toNumber(),    
+        result: result.toNumber(),              
       },
       lastMonthsResult: lastMonthsResultValue.toNumber(),
     };
@@ -164,4 +162,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: "Internal error" }, { status: 500 });
   }
 }
-

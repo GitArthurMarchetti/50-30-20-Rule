@@ -38,6 +38,8 @@ export const defaultCategories = [
   { name: "General Savings", type: TransactionType.RESERVES },
   { name: "Travel Fund", type: TransactionType.RESERVES },
   { name: "Major Purchase Fund (Car, House)", type: TransactionType.RESERVES },
+  { name: "Cryptocurrency", type: TransactionType.RESERVES }, 
+
   
   // Investments
   { name: "Cryptocurrency", type: TransactionType.INVESTMENTS }, 

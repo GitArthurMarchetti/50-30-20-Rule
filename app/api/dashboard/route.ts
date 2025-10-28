@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const monthParam = searchParams.get("month");
+    const monthParam = searchParams.get("month"); 
     const includeResult = searchParams.get("includeResult") !== "false";
 
     if (!monthParam) {
@@ -61,15 +61,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const [year, monthIndex] = monthParam.split("-").map(Number);
+  
+    const [year, monthIndex] = monthParam.split("-").map(Number); 
 
     const firstDayOfPreviousMonth = new Date(year, monthIndex - 2, 1);
-    
     const previousMonthSummary = await getOrCreateMonthlySummary(
       session.userId,
       firstDayOfPreviousMonth
     );
-    const lastMonthsResultValue = previousMonthSummary.final_balance; 
+    const lastMonthsResultValue = previousMonthSummary.final_balance;
 
     const firstDayOfCurrentMonth = new Date(year, monthIndex - 1, 1);
     const lastDayOfCurrentMonth = new Date(year, monthIndex, 0, 23, 59, 59);
@@ -105,12 +105,8 @@ export async function GET(request: NextRequest) {
     const investmentsTotal = currentMonthTransactions
       .filter((t) => t.type === "INVESTMENTS")
       .reduce((s, t) => s.add(t.amount), new Decimal(0));
-
-    const result = baseIncome
-      .sub(needsExpenses)
-      .sub(wantsExpenses)
-      .sub(reservesTotal)
-      .sub(investmentsTotal);
+    
+    const result = baseIncome.sub(needsExpenses).sub(wantsExpenses).sub(reservesTotal).sub(investmentsTotal);
 
     const responseData: DashboardData = {
       cards: {
@@ -147,11 +143,12 @@ export async function GET(request: NextRequest) {
       },
 
       financialStatement: {
-        revenue: baseIncome.toNumber(),          
-        fixedExpenses: needsExpenses.toNumber(),  
+        revenue: baseIncome.toNumber(), 
+        fixedExpenses: needsExpenses.toNumber(), 
         variableExpenses: wantsExpenses.toNumber(), 
-        reserves: reservesTotal.toNumber(),    
-        result: result.toNumber(),              
+        reserves: reservesTotal.toNumber(), 
+        investments: investmentsTotal.toNumber(), 
+        result: result.toNumber(), 
       },
       lastMonthsResult: lastMonthsResultValue.toNumber(),
     };

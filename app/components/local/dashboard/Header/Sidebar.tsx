@@ -16,6 +16,7 @@ export default function Sidebar({ financialStatement, selectedDate, onMonthChang
                 totalNeeds={financialStatement.fixedExpenses}
                 totalWants={financialStatement.variableExpenses}
                 totalReserves={financialStatement.reserves}
+                investments={financialStatement.investments}
                 finalBalance={financialStatement.result}
             />
         </div>

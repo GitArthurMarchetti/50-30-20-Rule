@@ -33,6 +33,7 @@ export interface DashboardData {
     variableExpenses: number;
     reserves: number;
     result: number;
+    investments: number; 
   };
   lastMonthsResult: number;
 }
@@ -44,12 +45,11 @@ export interface SidebarProps {
     fixedExpenses: number;
     variableExpenses: number;
     reserves: number;
+    investments: number; 
     result: number;
   };
   selectedDate: Date;
   onMonthChange: (monthIndex: number) => void;
 }
 
-
-// Re-exporte o tipo do Prisma para usar de um só lugar
 export { TransactionType };

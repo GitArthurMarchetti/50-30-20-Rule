@@ -6,6 +6,7 @@ interface FinancialStatementProps {
   totalNeeds: number;
   totalWants: number;
   totalReserves: number;
+  investments: number; 
   finalBalance: number;
 }
 
@@ -13,6 +14,7 @@ export default function FinancialStatement({
   totalIncome,
   totalNeeds,
   totalWants,
+  investments, 
   totalReserves,
   finalBalance,
 }: FinancialStatementProps) {
@@ -26,11 +28,16 @@ export default function FinancialStatement({
         return percentageOfRevenue > 50;
       case "E. Variable":
         return percentageOfRevenue > 30;
+      case "Reserves":
+        return percentageOfRevenue > 10;
+      case "Investments":
+        return percentageOfRevenue > 10;
       case "Result":
         return percentageOfRevenue < 0; 
       default:
         return false;
     }
+
   };
 
   const calculatePercentage = (value: number) => {
@@ -59,6 +66,12 @@ export default function FinancialStatement({
         amount: formatCurrency(totalReserves),
         percentage: calculatePercentage(totalReserves),
         isBad: isRowInBadSituation("Reserves", totalReserves) 
+      },
+      {
+        label: "Investments",
+        amount: formatCurrency(investments),
+        percentage: calculatePercentage(investments),
+        isBad: isRowInBadSituation("Investments", investments) 
       },
     ],
     result: {

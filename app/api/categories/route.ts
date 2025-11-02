@@ -7,6 +7,9 @@ import { defaultCategories } from "../categories";
 
 
 export async function GET(request: NextRequest) { 
+
+  console.log(defaultCategories)
+
   try {
     const session = await getSessionUser();
     if (!session) {

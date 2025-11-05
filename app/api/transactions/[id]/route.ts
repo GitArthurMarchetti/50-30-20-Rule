@@ -5,9 +5,6 @@ import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
 import { prisma } from "@/prisma/db";
 import { NextRequest, NextResponse } from "next/server";
 
-// -----------------------------------------------------------------------------
-// GET (Já estava Correto)
-// -----------------------------------------------------------------------------
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> } // Assinatura Correta
@@ -18,7 +15,7 @@ export async function GET(
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await context.params; // Correto, com 'await'
+    const { id } = await context.params; 
     const transactionId = parseInt(id, 10);
 
     if (isNaN(transactionId)) {
@@ -51,14 +48,12 @@ export async function GET(
   }
 }
 
-// -----------------------------------------------------------------------------
-// DELETE (Corrigido)
-// -----------------------------------------------------------------------------
+
 export async function DELETE(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> } // 👇 Assinatura Corrigida
+  context: { params: Promise<{ id: string }> } 
 ) {
-  let id: string; // Movido para fora para uso no log de erro
+  let id: string; 
   try {
     const session = await getSessionUser();
     if (!session) {

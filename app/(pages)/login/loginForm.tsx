@@ -1,6 +1,8 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { authService } from "@/app/lib/api/auth-service";
+import { ApiError } from "@/app/lib/api/api-client";
 
 
 export function getErrorMessage(error: unknown) {
@@ -24,24 +26,16 @@ export default function LoginForm() {
     setErr("");
 
     try {
-      const r = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          password,
-        }),
-      });
-
-      if (!r.ok) {
-        const data = await r.json().catch(() => ({}));
-        throw new Error(data.message || "Falha no login");
-      }
-
+      await authService.login({ email, password });
       router.push(next);
       router.refresh();
     } catch (e: unknown) {
-      setErr(getErrorMessage(e));
+      const message = e instanceof ApiError
+        ? e.message
+        : e instanceof Error
+        ? e.message
+        : "Falha no login";
+      setErr(message);
     } finally {
       setLoading(false);
     }

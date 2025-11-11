@@ -1,7 +1,10 @@
 'use client';
 
-import { Category, TransactionType } from "@/app/generated/prisma";
+import { TransactionType } from "@/app/generated/prisma";
 import { useEffect, useState, FormEvent } from "react";
+import { categoryService, Category } from "@/app/lib/api/category-service";
+import { transactionService } from "@/app/lib/api/transaction-service";
+import { ApiError } from "@/app/lib/api/api-client";
 
 // 1. Definimos os dados que este modal espera
 interface TransactionData {
@@ -35,7 +38,6 @@ export default function TransactionEditModal({
 
     useEffect(() => {
         if (isOpen) {
-        
             setFormData({
                 ...transaction,
                 date: new Date(transaction.date).toISOString().split('T')[0],
@@ -44,24 +46,14 @@ export default function TransactionEditModal({
             setError("");
             setIsCategoriesLoading(true); 
 
-            fetch(`/api/categories?type=${transaction.type}`)
-                .then((res) => {
-                    if (!res.ok) {
-                      throw new Error("Falha ao buscar categorias. Status: " + res.status);
-                    }
-                    return res.json();
-                })
+            categoryService.getAll(transaction.type)
                 .then((data) => {
-                    if (Array.isArray(data)) {
-                        setCategories(data);
-                    } else {
-                        console.error("API não retornou um array de categorias:", data);
-                        setCategories([]);
-                    }
+                    setCategories(data);
                 })
                 .catch((err) => {
                     console.error("Failed to fetch categories", err);
                     setCategories([]);
+                    setError(err instanceof ApiError ? err.message : "Failed to load categories");
                 })
                 .finally(() => {
                     setIsCategoriesLoading(false); 
@@ -86,25 +78,22 @@ export default function TransactionEditModal({
             const numericAmount = parseFloat(String(formData.amount).replace(',', '.'));
             const categoryId = formData.categoryId ? parseInt(String(formData.categoryId), 10) : null;
 
-            const response = await fetch(`/api/transactions/${transaction.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ...formData,
-                    amount: numericAmount,
-                    categoryId: categoryId,
-                    date: new Date(formData.date + 'T00:00:00'),
-                    type: transaction.type,
-                }),
+            await transactionService.update(transaction.id, {
+                description: formData.description,
+                amount: numericAmount,
+                type: transaction.type,
+                categoryId: categoryId,
+                date: new Date(formData.date + 'T00:00:00'),
             });
-
-            if (!response.ok) {
-                throw new Error("Falha ao atualizar a transação");
-            }
 
             onTransactionUpdated();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Ocorreu um erro desconhecido.");
+            const message = err instanceof ApiError
+                ? err.message
+                : err instanceof Error
+                ? err.message
+                : "Ocorreu um erro desconhecido.";
+            setError(message);
         } finally {
             setIsLoading(false);
         }
@@ -168,7 +157,7 @@ export default function TransactionEditModal({
                             className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             disabled={isCategoriesLoading} // Desabilitado enquanto carrega
                         >
-                            <option value="">{isCategoriesLoading ? 'Carregando...' : 'No Category'}</option>
+                            <option value="">{isCategoriesLoading ? 'Loading...' : 'No Category'}</option>
                             {Array.isArray(categories) && categories.map((cat) => (
                                 <option key={cat.id} value={cat.id}>
                                     {cat.name}

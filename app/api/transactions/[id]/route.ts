@@ -1,74 +1,72 @@
 // app/api/transactions/[id]/route.ts
 
-import { getSessionUser } from "@/app/lib/auth-server";
-import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
-import { prisma } from "@/prisma/db";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/prisma/db";
+import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
+import { SessionUser } from "@/app/lib/auth-server"; 
 
-export async function GET(
+import {
+  badRequestResponse,
+  notFoundResponse,
+  internalErrorResponse,
+} from "@/app/lib/errors/responses"; 
+import { AuthenticatedHandler, withAuth } from "@/app/lib/auth-helpers";
+import { safeParseJson, isValidTransactionType, isValidAmount, parseAndValidateDate, isCategoryTypeCompatible } from "@/app/lib/validators";
+import { TransactionType } from "@/app/generated/prisma";
+
+type RouteParams = {
+  id: string;
+};
+
+// -----------------------------------------------------------------------------
+// GET Handler (Lógica de Negócio Pura)
+// -----------------------------------------------------------------------------
+const getHandler: AuthenticatedHandler<RouteParams> = async (
   request: NextRequest,
-  context: { params: Promise<{ id: string }> } // Assinatura Correta
-) {
-  try {
-    const session = await getSessionUser();
-    if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
 
-    const { id } = await context.params; 
-    const transactionId = parseInt(id, 10);
+  context: { params: Promise<{ id: string }> },
+  session: SessionUser 
+) => {
 
-    if (isNaN(transactionId)) {
-      return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
-    }
+  const { id } = await context.params; 
+  const transactionId = parseInt(id, 10);
 
-    const transaction = await prisma.transaction.findUnique({
-      where: {
-        id_userId: {
-          id: transactionId,
-          userId: session.userId,
-        },
-      },
-    });
-
-    if (!transaction) {
-      return NextResponse.json(
-        { message: "Transaction not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(transaction);
-  } catch (error) {
-    console.error("Error fetching transaction:", error);
-    return NextResponse.json(
-      { message: "An error occurred on the server." },
-      { status: 500 }
-    );
+  if (isNaN(transactionId)) {
+    return badRequestResponse("Invalid ID");
   }
-}
 
+  const transaction = await prisma.transaction.findUnique({
+    where: {
+      id_userId: {
+        id: transactionId,
+        userId: session.userId,
+      },
+    },
+  });
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> } 
-) {
-  let id: string; 
+  if (!transaction) {
+    return notFoundResponse("Transaction not found");
+  }
+
+  return NextResponse.json(transaction);
+};
+
+// -----------------------------------------------------------------------------
+// DELETE Handler (Lógica de Negócio Pura)
+// -----------------------------------------------------------------------------
+const deleteHandler: AuthenticatedHandler<RouteParams> = async (
+  req,
+  context,
+  session
+) => {
+  const { id } = await context.params;
+  const transactionId = parseInt(id, 10);
+
+  if (isNaN(transactionId)) {
+    return badRequestResponse("Invalid ID");
+  }
+
   try {
-    const session = await getSessionUser();
-    if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-    
-    // 👇 Corrigido: 'await' adicionado para obter os params
-    const params = await context.params;
-    id = params.id;
-    const transactionId = parseInt(id, 10);
-
-    if (isNaN(transactionId)) {
-      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
-    }
-
     await prisma.transaction.delete({
       where: {
         id_userId: {
@@ -78,50 +76,106 @@ export async function DELETE(
       },
     });
 
-    return NextResponse.json(
-      { message: "Transaction deleted successfully" },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "Transaction deleted successfully" });
   } catch (error) {
-    console.error(`Error deleting transaction unknown`, error);
-    return NextResponse.json(
-      { error: "Error deleting transaction" },
-      { status: 500 }
-    );
+    if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
+      return notFoundResponse("Transaction not found");
+    }
+    console.error("Error deleting transaction:", error);
+    return internalErrorResponse("Failed to delete transaction");
   }
-}
+};
 
 // -----------------------------------------------------------------------------
-// PUT (Corrigido)
+// PUT Handler (Lógica de Negócio Pura)
 // -----------------------------------------------------------------------------
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> } // 👇 Assinatura Corrigida
-) {
-  let id: string; // Movido para fora para uso no log de erro
+const putHandler: AuthenticatedHandler<RouteParams> = async (
+  req,
+  context,
+  session
+) => {
+  const { id } = await context.params;
+  const transactionId = parseInt(id, 10);
+
+  if (isNaN(transactionId)) {
+    return badRequestResponse("Invalid ID");
+  }
+
   try {
-    const session = await getSessionUser();
-    if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    // First verify the transaction exists and belongs to the user
+    const existingTransaction = await prisma.transaction.findUnique({
+      where: {
+        id_userId: {
+          id: transactionId,
+          userId: session.userId,
+        },
+      },
+    });
+
+    if (!existingTransaction) {
+      return notFoundResponse("Transaction not found");
     }
 
-    // 👇 Corrigido: 'await' adicionado para obter os params
-    const params = await context.params;
-    id = params.id;
-    const transactionId = parseInt(id, 10);
-
-    if (isNaN(transactionId)) {
-      return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+    const parseResult = await safeParseJson<{
+      description?: string;
+      amount?: unknown;
+      type?: string;
+      date?: unknown;
+      categoryId?: unknown;
+    }>(req);
+    if (!parseResult.success) {
+      return badRequestResponse(parseResult.error || "Invalid request body");
     }
 
-    const body = await request.json();
-    const { description, amount, date, categoryId } = body;
+    const body = parseResult.data!;
 
-    if (!description || !amount || !date) {
-      return NextResponse.json(
-        { message: "Missing required fields" },
-        { status: 400 }
-      );
+    if (!body.description || body.amount == null || !body.type || !body.date) {
+      return badRequestResponse("Missing required fields: description, amount, type, and date are required");
+    }
+
+    const description = String(body.description).trim();
+    if (description.length === 0) {
+      return badRequestResponse("Description cannot be empty");
+    }
+    if (description.length > 255) {
+      return badRequestResponse("Description cannot exceed 255 characters");
+    }
+
+    if (!isValidTransactionType(body.type.toUpperCase())) {
+      return badRequestResponse(`Invalid transaction type: ${body.type}. Valid types are: ${Object.values(TransactionType).join(", ")}`);
+    }
+    const transactionType = body.type.toUpperCase() as TransactionType;
+
+    const amount = typeof body.amount === "number" ? body.amount : parseFloat(String(body.amount));
+    if (!isValidAmount(amount)) {
+      return badRequestResponse("Amount must be a positive number");
+    }
+
+    const dateValidation = parseAndValidateDate(body.date);
+    if (!dateValidation.valid || !dateValidation.date) {
+      return badRequestResponse(dateValidation.error || "Invalid date");
+    }
+    const transactionDate = dateValidation.date;
+
+    let parsedCategoryId: number | null = null;
+    if (body.categoryId != null) {
+      const parsed = typeof body.categoryId === "number" ? body.categoryId : parseInt(String(body.categoryId), 10);
+      if (isNaN(parsed) || parsed <= 0) {
+        return badRequestResponse("Invalid category ID");
+      }
+      parsedCategoryId = parsed;
+    }
+
+    if (parsedCategoryId) {
+      const category = await prisma.category.findFirst({
+        where: { id: parsedCategoryId, userId: session.userId }
+      });
+      if (!category) {
+        return notFoundResponse("Category not found");
+      }
+      if (!isCategoryTypeCompatible(category.type, transactionType)) {
+        return badRequestResponse(`Category '${category.name}' is not valid for type '${transactionType}'`);
+      }
     }
 
     const updatedTransaction = await prisma.transaction.update({
@@ -132,10 +186,11 @@ export async function PUT(
         },
       },
       data: {
-        description: String(description),
-        amount: parseFloat(amount),
-        date: new Date(date),
-        categoryId: categoryId ? parseInt(categoryId, 10) : null,
+        description,
+        amount,
+        type: transactionType,
+        date: transactionDate,
+        categoryId: parsedCategoryId,
       },
     });
 
@@ -143,10 +198,14 @@ export async function PUT(
 
     return NextResponse.json(updatedTransaction);
   } catch (error) {
-    console.error(`Error updating transaction unknown`, error);
-    return NextResponse.json(
-      { message: "Internal error" },
-      { status: 500 }
-    );
+    if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
+      return notFoundResponse("Transaction not found");
+    }
+    console.error("Error updating transaction:", error);
+    return internalErrorResponse("Failed to update transaction");
   }
-}
+};
+
+export const GET = withAuth(getHandler);
+export const DELETE = withAuth(deleteHandler);
+export const PUT = withAuth(putHandler);

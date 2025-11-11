@@ -1,32 +1,32 @@
 import { getAnnualSummary } from "@/app/lib/annualSumarry-service";
-import { getSessionUser } from "@/app/lib/auth-server";
+import { SessionUser } from "@/app/lib/auth-server";
+import { AuthenticatedHandler, withAuth } from "@/app/lib/auth-helpers";
+import { badRequestResponse, internalErrorResponse } from "@/app/lib/errors/responses";
 import { NextRequest, NextResponse } from "next/server";
+import { isValidYear } from "@/app/lib/validators";
 
-export async function GET(request: NextRequest) {
+const getHandler: AuthenticatedHandler<Record<string, never>> = async (
+    request: NextRequest,
+    context: { params: Record<string, never> },
+    session: SessionUser
+) => {
     try {
-        const session = await getSessionUser();
-        if (!session) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
-
         const { searchParams } = new URL(request.url);
         const yearParam = searchParams.get("year");
 
         const year = yearParam ? parseInt(yearParam, 10) : new Date().getFullYear();
 
-        if (isNaN(year)) {
-            return NextResponse.json({ message: "Invalid year format" }, { status: 400 });
+        if (!isValidYear(year)) {
+            return badRequestResponse("Invalid year. Year must be between 1900 and 2100");
         }
 
         const summary = await getAnnualSummary(session.userId, year);
 
         return NextResponse.json(summary);
-
     } catch (error) {
         console.error("Error fetching annual summary:", error);
-        return NextResponse.json(
-            { message: "Internal error" },
-            { status: 500 }
-        );
+        return internalErrorResponse("Failed to fetch annual summary");
     }
-}
+};
+
+export const GET = withAuth(getHandler);

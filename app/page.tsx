@@ -6,12 +6,7 @@ import Sidebar from "./components/local/dashboard/Header/Sidebar";
 import DashboardHeader from "./components/local/dashboard/Header/DashboardHeader";
 import FinancialCategoryCard from "./components/local/dashboard/Header/financials/FinancialCategoryCard";
 import FinancialEntryRow from "./components/local/dashboard/Header/financials/FinancialEntryRow";
-
-interface Category {
-  id: number;
-  name: string;
-  type: string; 
-}
+import { categoryService } from "./lib/api/category-service";
 
 function DashboardContent() {
 
@@ -36,15 +31,12 @@ function DashboardContent() {
     async function fetchCategories() {
       setIsCategoryLoading(true);
       try {
-        const res = await fetch('/api/categories');
-        const categories: Category[] = await res.json();
-        
+        const categories = await categoryService.getAll();
         const newMap = new Map<number, string>();
         categories.forEach(cat => {
           newMap.set(cat.id, cat.name);
         });
         setCategoryMap(newMap);
-
       } catch (e) {
         console.error("Falha ao buscar categorias", e);
       } finally {
@@ -57,7 +49,7 @@ function DashboardContent() {
 
 
   if (isLoading || isCategoryLoading || !data) {
-    return <p className="text-white text-center mt-10">Carregando...</p>;
+    return <p className="text-8xl font-bold text-white  text-center flex items-center justify-center h-full w-full">LOADING...</p>;
   }
 
   if (error) {

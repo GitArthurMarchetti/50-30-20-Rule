@@ -1,12 +1,22 @@
 import { formatCurrency } from "@/app/lib/formatters";
 import { FaUserCircle } from "react-icons/fa";
-import { VscEye, VscEyeClosed } from "react-icons/vsc"; 
+import { VscEye, VscEyeClosed } from "react-icons/vsc";
 
 interface UserWelcomeProps {
     lastMonthsResult: number;
     isResultIncluded: boolean;
     onToggleResult: () => void;
 }
+
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet"
+import UserSheetContent from "../UserSheetContent";
 
 export default function UserWelcome({
     lastMonthsResult,
@@ -18,12 +28,22 @@ export default function UserWelcome({
 
     return (
         <div className="flex flex-row items-center h-full">
-            <FaUserCircle className="h-full w-auto" />
 
-            <div className="card-transaction ml-5 flex items-center"  onClick={onToggleResult}>
+            <Sheet>
+
+                <SheetTrigger className="h-full w-auto cursor-pointer">
+                    <FaUserCircle className="h-full w-auto  simple-button-style" />
+                </SheetTrigger>
+
+                <SheetContent>
+                    <UserSheetContent />
+                </SheetContent>
+            </Sheet>
+
+            <div className="card-transaction ml-5 flex items-center" onClick={onToggleResult}>
                 <button
                     className="mr-2 focus:outline-none"
-                    aria-label="Ativar/desativar resultado do mês anterior"
+                    aria-label="Enable/disable previous month's result"
                 >
                     {isResultIncluded ? <VscEye className="h-5 w-5" /> : <VscEyeClosed className="h-5 w-5" />}
                 </button>

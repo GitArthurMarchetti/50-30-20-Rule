@@ -2,25 +2,44 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/db";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@/app/generated/prisma";
+import { badRequestResponse, conflictResponse, internalErrorResponse } from "@/app/lib/errors/responses";
+import { safeParseJson, isValidEmail } from "@/app/lib/validators";
 
 export async function POST(req: Request) {
   try {
-    const { username, email, password } = await req.json();
+    const parseResult = await safeParseJson<{ username?: string; email?: string; password?: string }>(req);
+    if (!parseResult.success) {
+      return badRequestResponse(parseResult.error || "Invalid request body");
+    }
+
+    const { username, email, password } = parseResult.data!;
 
     const usernameNorm = String(username ?? "").trim();
     const emailNorm = String(email ?? "").trim().toLowerCase();
     const pass = String(password ?? "");
 
-    if (!username || String(username).trim().length === 0) {
-      return NextResponse.json({ message: "Username is required" }, { status: 400 });
+    if (!username || usernameNorm.length === 0) {
+      return badRequestResponse("Username is required");
+    }
+
+    if (usernameNorm.length > 50) {
+      return badRequestResponse("Username cannot exceed 50 characters");
     }
     
-    if (!email || String(email).trim().length === 0) {
-      return NextResponse.json({ message: "Email is required" }, { status: 400 });
+    if (!email || emailNorm.length === 0) {
+      return badRequestResponse("Email is required");
+    }
+
+    if (!isValidEmail(emailNorm)) {
+      return badRequestResponse("Invalid email format");
     }
     
-    if (!password || String(password).length < 6) {
-      return NextResponse.json({ message: "Password must be at least 6 characters long" }, { status: 400 });
+    if (!password || pass.length < 6) {
+      return badRequestResponse("Password must be at least 6 characters long");
+    }
+
+    if (pass.length > 128) {
+      return badRequestResponse("Password cannot exceed 128 characters");
     }
 
     const exists = await prisma.user.findFirst({
@@ -28,7 +47,7 @@ export async function POST(req: Request) {
       select: { id: true },
     });
     if (exists) {
-      return NextResponse.json({ message: "Email or username already exists" }, { status: 409 });
+      return conflictResponse("Email or username already exists");
     }
 
     const hash = await bcrypt.hash(pass, 10);
@@ -44,10 +63,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: "User created" }, { status: 201 });
   } catch (e: unknown) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-      return NextResponse.json({ message: "Email/username already registered" }, { status: 409 });
+      return conflictResponse("Email/username already registered");
     }
     const msg = e instanceof Error ? e.message : "Internal error";
     console.error(msg);
-    return NextResponse.json({ message: "Internal error" }, { status: 500 });
+    return internalErrorResponse("Internal error");
   }
 }

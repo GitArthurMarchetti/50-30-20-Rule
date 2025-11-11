@@ -1,44 +1,85 @@
-import { getSessionUser } from "@/app/lib/auth-server";
+import { SessionUser } from "@/app/lib/auth-server";
+import { AuthenticatedHandler, withAuth } from "@/app/lib/auth-helpers";
+import { badRequestResponse, notFoundResponse, internalErrorResponse } from "@/app/lib/errors/responses";
 import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
 import { prisma } from "@/prisma/db";
 import { NextRequest, NextResponse } from "next/server";
+import { safeParseJson, isValidTransactionType, isValidAmount, parseAndValidateDate, isCategoryTypeCompatible } from "@/app/lib/validators";
+import { TransactionType } from "@/app/generated/prisma";
 
-export async function POST(request: NextRequest) {
+const postHandler: AuthenticatedHandler<Record<string, never>> = async (
+  request: NextRequest,
+  context: { params: Record<string, never> },
+  session: SessionUser
+) => {
   try {
-    const session = await getSessionUser();
-    if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const parseResult = await safeParseJson<{
+      description?: string;
+      amount?: unknown;
+      type?: string;
+      date?: unknown;
+      categoryId?: unknown;
+    }>(request);
+    if (!parseResult.success) {
+      return badRequestResponse(parseResult.error || "Invalid request body");
     }
 
-    const body = await request.json();
+    const body = parseResult.data!;
 
     if (!body.description || body.amount == null || !body.type || !body.date) {
-      return NextResponse.json({ message: "Incomplete transaction data" }, { status: 400 });
+      return badRequestResponse("Incomplete transaction data: description, amount, type, and date are required");
     }
 
-    const transactionDate = new Date(body.date);
-    const categoryId = body.categoryId ? parseInt(body.categoryId, 10) : null;
+    const description = String(body.description).trim();
+    if (description.length === 0) {
+      return badRequestResponse("Description cannot be empty");
+    }
+    if (description.length > 255) {
+      return badRequestResponse("Description cannot exceed 255 characters");
+    }
+
+    if (!isValidTransactionType(body.type.toUpperCase())) {
+      return badRequestResponse(`Invalid transaction type: ${body.type}. Valid types are: ${Object.values(TransactionType).join(", ")}`);
+    }
+    const transactionType = body.type.toUpperCase() as TransactionType;
+
+    const amount = typeof body.amount === "number" ? body.amount : parseFloat(String(body.amount));
+    if (!isValidAmount(amount)) {
+      return badRequestResponse("Amount must be a positive number");
+    }
+
+    const dateValidation = parseAndValidateDate(body.date);
+    if (!dateValidation.valid || !dateValidation.date) {
+      return badRequestResponse(dateValidation.error || "Invalid date");
+    }
+    const transactionDate = dateValidation.date;
+
+    let categoryId: number | null = null;
+    if (body.categoryId != null) {
+      const parsed = typeof body.categoryId === "number" ? body.categoryId : parseInt(String(body.categoryId), 10);
+      if (isNaN(parsed) || parsed <= 0) {
+        return badRequestResponse("Invalid category ID");
+      }
+      categoryId = parsed;
+    }
 
     if (categoryId) {
       const category = await prisma.category.findFirst({
         where: { id: categoryId, userId: session.userId }
       });
       if (!category) {
-        return NextResponse.json({ message: "Category not found" }, { status: 404 });
+        return notFoundResponse("Category not found");
       }
-      if (category.type !== body.type) {
-        return NextResponse.json(
-          { message: `Category '${category.name}' is not valid for type '${body.type}'` },
-          { status: 400 }
-        );
+      if (!isCategoryTypeCompatible(category.type, transactionType)) {
+        return badRequestResponse(`Category '${category.name}' is not valid for type '${transactionType}'`);
       }
     }
 
     const newTransaction = await prisma.transaction.create({
       data: {
-        description: body.description,
-        amount: body.amount,
-        type: body.type,
+        description,
+        amount,
+        type: transactionType,
         categoryId: categoryId,
         date: transactionDate,
         userId: session.userId,
@@ -48,9 +89,10 @@ export async function POST(request: NextRequest) {
     await getOrCreateMonthlySummary(session.userId, transactionDate);
 
     return NextResponse.json(newTransaction, { status: 201 });
-
   } catch (error) {
     console.error("Error creating transaction:", error);
-    return NextResponse.json({ message: "An error occurred on the server." }, { status: 500 });
+    return internalErrorResponse("Failed to create transaction");
   }
-}
+};
+
+export const POST = withAuth(postHandler);

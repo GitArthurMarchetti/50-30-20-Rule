@@ -2,7 +2,10 @@
 
 import { useState, FormEvent, useEffect } from "react";
 import { PlusCircle } from "lucide-react";
-import { TransactionType, Category } from "@/app/generated/prisma";
+import { TransactionType } from "@/app/generated/prisma";
+import { categoryService, Category } from "@/app/lib/api/category-service";
+import { transactionService } from "@/app/lib/api/transaction-service";
+import { ApiError } from "@/app/lib/api/api-client";
 
 interface AddTransactionButtonProps {
   categoryType: TransactionType;
@@ -42,28 +45,18 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
       newDate.setDate(1); 
       setDate(newDate.toISOString().split('T')[0]);
 
-      fetch(`/api/categories?type=${categoryType}`)
-          .then((res) => {
-            if (!res.ok) {
-              throw new Error("Falha ao buscar categorias. Status: " + res.status);
-            }
-            return res.json();
-          })
-          .then((data) => {
-            if (Array.isArray(data)) {
-              setCategories(data);
-            } else {
-              console.error("API não retornou um array de categorias:", data);
-              setCategories([]);
-            }
-          })
-          .catch((err) => {
-            console.error("Failed to fetch categories", err);
-            setCategories([]);
-          })
-          .finally(() => {
-            setIsCategoriesLoading(false); 
-          });
+      categoryService.getAll(categoryType)
+        .then((data) => {
+          setCategories(data);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch categories", err);
+          setCategories([]);
+          setError(err instanceof ApiError ? err.message : "Failed to load categories");
+        })
+        .finally(() => {
+          setIsCategoriesLoading(false); 
+        });
     }
   }, [isOpen, selectedDate, categoryType]); 
 
@@ -86,28 +79,23 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
       
       const finalCategoryId = categoryId ? parseInt(categoryId, 10) : null;
 
-      const response = await fetch('/api/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          description,
-          amount: numericAmount,
-          date: new Date(date + 'T00:00:00'),
-          type: categoryType,
-          categoryId: finalCategoryId, 
-        }),
+      await transactionService.create({
+        description,
+        amount: numericAmount,
+        date: new Date(date + 'T00:00:00'),
+        type: categoryType,
+        categoryId: finalCategoryId,
       });
-
-      if (!response.ok) {
-        throw new Error("Error to create.");
-      }
       
       setIsOpen(false);
       onTransactionAdded();
-
-
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+      const message = err instanceof ApiError
+        ? err.message
+        : err instanceof Error
+        ? err.message
+        : "An unknown error occurred.";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +107,7 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
 
   return (
     <>
-      <button onClick={openModal} className="text-gray-400 hover:text-white transition-colors">
+      <button onClick={openModal} className="simple-button-style">
         <PlusCircle size={20} />
       </button>
       {isOpen && (
@@ -152,7 +140,7 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
                     className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     disabled={isCategoriesLoading} 
                 >
-                    <option value="">{isCategoriesLoading ? 'Carregando...' : 'No Category'}</option>
+                    <option value="">{isCategoriesLoading ? 'Loading...' : 'No Category'}</option>
                     
                     {Array.isArray(categories) && categories.map((cat) => (
                         <option key={cat.id} value={cat.id}>

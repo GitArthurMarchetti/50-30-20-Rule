@@ -28,7 +28,11 @@
 
   /* buttons */ 
   --main-button-background: #b700ff71;
-   --card: oklch(1 0 0);
+
+  --simple-button: #9CA3AF;
+  --simple-button-hover: #ffffff;
+
+  --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
@@ -106,23 +110,6 @@
   }
 } */
 
-.main-button {
-
-  display: flex;
-  flex-direction: row;
-
-  cursor: pointer;
-
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  font-weight: 700;
-
-  background-color: var(--main-button-background);
-  border-radius: var(--border-radius);
-
-}
 
 body {
   background-color: var(--background);
@@ -130,6 +117,30 @@ body {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+}
+
+
+.main-button {
+  display: flex;
+  flex-direction: row;
+  cursor: pointer;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  font-weight: 700;
+  background-color: var(--main-button-background);
+  border-radius: var(--border-radius);
+}
+
+
+.simple-button-style{
+  color: var(--simple-button);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.simple-button-style:hover {
+  color: var(--simple-button-hover);
 }
 
 .card-transaction {
@@ -142,10 +153,12 @@ body {
 
   background-color: var(--background-transaction);
   border-radius: var(--border-radius);
+  transition: all 0.2s ease;
 }
 
 .transaction-background{
   background-color: var(--background-transaction);
+  transition: all 0.2s ease;
 }
 
 .transaction-background:hover{
@@ -205,6 +218,7 @@ body {
 .text-saving {
   color: var(--color-yellow);
 }
+
 
 
 .dark {

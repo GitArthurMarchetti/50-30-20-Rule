@@ -2,6 +2,10 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { DashboardData } from '../types/dashboardTypes';
+import { dashboardService } from '../lib/api/dashboard-service';
+import { transactionService } from '../lib/api/transaction-service';
+import { formatDateForAPI } from '../lib/api/utils';
+import { ApiError } from '../lib/api/api-client';
 
 interface DashboardContextType {
   data: DashboardData | null;
@@ -28,27 +32,21 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
 
   const fetchData = useCallback(async (date: Date, resultIncluded: boolean) => {
-
-    // --- CORREÇÃO AQUI ---
-    // A API deve esperar o mês no formato "YYYY-MM" (1-indexado)
-    const year = date.getFullYear();
-    // 1. Converte de 0-indexado (0-11) para 1-indexado (1-12)
-    const month = date.getMonth() + 1;
-    // 2. Garante "09", "10", etc.
-    const monthString = String(month).padStart(2, '0');
-    // 3. Cria o formato "YYYY-MM"
-    const yearMonth = `${year}-${monthString}`;
-    // --- FIM DA CORREÇÃO ---
-
     try {
       setError(null);
-      // 4. Usa o formato de URL correto
-      const response = await fetch(`/api/dashboard?month=${yearMonth}&includeResult=${resultIncluded}`);
-      if (!response.ok) throw new Error('Falha ao buscar os dados.');
-      const resultData = await response.json();
+      const monthParam = formatDateForAPI(date);
+      const resultData = await dashboardService.getDashboard({
+        month: monthParam,
+        includeResult: resultIncluded,
+      });
       setData(resultData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ocorreu um erro.');
+      const message = err instanceof ApiError 
+        ? err.message 
+        : err instanceof Error 
+        ? err.message 
+        : 'Ocorreu um erro.';
+      setError(message);
     }
   }, []);
 
@@ -79,11 +77,15 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   const handleDeleteTransaction = async (id: number) => {
     setDeletingIds(prev => [...prev, id]);
     try {
-      const response = await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Falha ao apagar no servidor.');
+      await transactionService.deleteTransaction(id);
       await refetchData();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ocorreu um erro ao apagar.');
+      const message = err instanceof ApiError
+        ? err.message
+        : err instanceof Error
+        ? err.message
+        : 'Ocorreu um erro ao apagar.';
+      setError(message);
     } finally {
       setDeletingIds(prev => prev.filter(deletingId => deletingId !== id));
     }

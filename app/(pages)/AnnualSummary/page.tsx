@@ -1,39 +1,34 @@
 'use client';
 
 import { useEffect, useState } from "react";
-
-interface AnnualSummaryData {
-    year: number;
-    total_income: string; 
-    needs_expenses: string;
-    wants_expenses: string;
-    total_savings: string;
-    total_investments: string;
-    final_balance: string;
-}
+import { annualSummaryService, AnnualSummaryData } from "@/app/lib/api/annual-summary-service";
+import { ApiError } from "@/app/lib/api/api-client";
 
 export default function AnnualSummary() {
     const [summary, setSummary] = useState<AnnualSummaryData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [selectedYear] = useState(new Date().getFullYear());
     
     useEffect(() => {
         const fetchAnnualSummary = async () => {
             setIsLoading(true);
+            setError(null);
             try {
-                const response = await fetch(`/api/annualSummary?year=${selectedYear}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setSummary(data);
-                } else {
-                    console.error("Failed to fetch annual summary");
-                    setSummary(null);
-                }
-            } catch (error) {
-                console.error("Error fetching summary:", error);
+                const data = await annualSummaryService.getAnnualSummary({ year: selectedYear });
+                setSummary(data);
+            } catch (err) {
+                const message = err instanceof ApiError
+                    ? err.message
+                    : err instanceof Error
+                    ? err.message
+                    : "Failed to fetch annual summary";
+                setError(message);
+                console.error("Error fetching summary:", err);
                 setSummary(null);
+            } finally {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         };
 
         fetchAnnualSummary();
@@ -44,8 +39,8 @@ export default function AnnualSummary() {
         return <div>Carregando resumo anual...</div>;
     }
 
-    if (!summary) {
-        return <div>Não foi possível carregar o resumo para {selectedYear}.</div>;
+    if (error || !summary) {
+        return <div>Não foi possível carregar o resumo para {selectedYear}. {error && <span className="text-red-500">{error}</span>}</div>;
     }
 
     return (

@@ -1,14 +1,15 @@
-import { getSessionUser } from "@/app/lib/auth-server";
+import { SessionUser } from "@/app/lib/auth-server";
+import { AuthenticatedHandler, withAuth } from "@/app/lib/auth-helpers";
 import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { internalErrorResponse } from "@/app/lib/errors/responses";
 
-export async function POST() {
+const postHandler: AuthenticatedHandler<Record<string, never>> = async (
+  request: NextRequest,
+  context: { params: Record<string, never> },
+  session: SessionUser
+) => {
   try {
-    const session = await getSessionUser();
-    if (!session) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
     const summary = await getOrCreateMonthlySummary(session.userId, new Date());
 
     return NextResponse.json({
@@ -16,10 +17,9 @@ export async function POST() {
       summary,
     });
   } catch (error) {
-    console.error("Error updating summary:", error);
-    return NextResponse.json(
-      { message: "Internal error" },
-      { status: 500 }
-    );
+    console.error("Error creating/updating monthly summary:", error);
+    return internalErrorResponse("Failed to update monthly summary");
   }
-}
+};
+
+export const POST = withAuth(postHandler);

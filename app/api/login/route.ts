@@ -2,24 +2,36 @@ import { prisma } from "@/prisma/db";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { signJwt } from "@/app/lib/jwt";
+import { unauthorizedResponse, internalErrorResponse, badRequestResponse } from "@/app/lib/errors/responses";
+import { safeParseJson } from "@/app/lib/validators";
 
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const parseResult = await safeParseJson<{ email?: string; password?: string }>(req);
+    if (!parseResult.success) {
+      return badRequestResponse(parseResult.error || "Invalid request body");
+    }
+
+    const { email, password } = parseResult.data!;
 
 
     
-    const emailNorm = String(email || "").trim().toLowerCase();
+    if (!email || !password) {
+      return badRequestResponse("Email and password are required");
+    }
+
+    const emailNorm = String(email).trim().toLowerCase();
+    const passwordString = String(password);
 
     const user = await prisma.user.findUnique({ where: { email: emailNorm } });
     if (!user) {
-      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
+      return unauthorizedResponse("Invalid credentials");
     }
 
-    const ok = await bcrypt.compare(String(password || ""), user.password_hash);
+    const ok = await bcrypt.compare(passwordString, user.password_hash);
     if (!ok) {
-      return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
+      return unauthorizedResponse("Invalid credentials");
     }
 
     const token = await signJwt({ userId: user.id, email: user.email }, "2h");
@@ -37,6 +49,6 @@ export async function POST(req: Request) {
     return res;
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ message: "Internal error" }, { status: 500 });
+    return internalErrorResponse("Internal error");
   }
 }

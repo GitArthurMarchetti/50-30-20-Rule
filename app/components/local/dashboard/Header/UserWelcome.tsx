@@ -11,12 +11,9 @@ interface UserWelcomeProps {
 import {
     Sheet,
     SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import UserSheetContent from "../UserSheetContent";
+import { UserSheet } from "../UserSheetContent";
 
 export default function UserWelcome({
     lastMonthsResult,
@@ -35,8 +32,8 @@ export default function UserWelcome({
                     <FaUserCircle className="h-full w-auto  simple-button-style" />
                 </SheetTrigger>
 
-                <SheetContent>
-                    <UserSheetContent />
+                <SheetContent side="left">
+                    <UserSheet />
                 </SheetContent>
             </Sheet>
 

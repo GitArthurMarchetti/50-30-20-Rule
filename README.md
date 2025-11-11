@@ -1,36 +1,150 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gold Rule - Personal Finance Management
 
-## Getting Started
+This is a [Next.js](https://nextjs.org) project for managing personal finances using the "Gold Rule" budgeting methodology.
 
-First, run the development server:
+## 🚀 Getting Started
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Prerequisites
+
+- Node.js 20+ 
+- PostgreSQL database
+- npm or yarn
+
+### Installation
+
+1. **Clone the repository and install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Set up environment variables:**
+   Create a `.env` file in the root directory with the following variables:
+   ```env
+   DATABASE_URL="postgresql://user:password@host:port/database?schema=public"
+   DIRECT_URL="postgresql://user:password@host:port/database?schema=public"
+   JWT_SECRET="your-secret-key-here"
+   NODE_ENV="development"
+   ```
+
+3. **Verify environment setup:**
+   ```bash
+   npm run check:env
+   ```
+
+4. **Set up the database:**
+   ```bash
+   # Generate Prisma Client
+   npm run db:generate
+   
+   # Run migrations
+   npm run db:migrate
+   
+   # (Optional) Seed with sample data
+   npm run db:seed
+   ```
+
+5. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## 📜 Available Scripts
+
+### Development
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+
+### Code Quality
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint errors automatically
+- `npm run type-check` - Check TypeScript types without building
+- `npm run validate` - Run all validation checks (type-check + lint + db:validate)
+
+### Database Management
+- `npm run db:generate` - Generate Prisma Client
+- `npm run db:migrate` - Create and apply a new migration
+- `npm run db:migrate:deploy` - Apply pending migrations (production)
+- `npm run db:migrate:reset` - Reset database and apply all migrations
+- `npm run db:studio` - Open Prisma Studio (database GUI)
+- `npm run db:push` - Push schema changes to database (dev only)
+- `npm run db:pull` - Pull schema from database
+- `npm run db:seed` - Seed database with sample data
+- `npm run db:format` - Format Prisma schema
+- `npm run db:validate` - Validate Prisma schema
+- `npm run db:reset:full` - Reset database (full reset)
+- `npm run db:reset:seed` - Reset database and seed with sample data
+
+### Utilities
+- `npm run clean` - Clean build cache
+- `npm run clean:all` - Clean build cache and generated Prisma client
+- `npm run check:env` - Check environment variables
+- `npm run check:health` - Check database health and connectivity
+
+## 📁 Project Structure
+
+```
+gold-rule/
+├── app/                    # Next.js app directory
+│   ├── api/               # API routes
+│   ├── components/        # React components
+│   ├── lib/               # Utility functions and services
+│   └── (pages)/           # Page routes
+├── prisma/                # Prisma schema and migrations
+│   ├── schema.prisma      # Database schema
+│   ├── seed.ts           # Database seed script
+│   └── migrations/        # Migration files
+├── scripts/               # Utility scripts
+│   ├── check-env.ts      # Environment variable checker
+│   ├── health-check.ts   # Database health check
+│   └── reset-db.ts       # Database reset script
+└── public/                # Static files
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔧 Development Workflow
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Before Committing
+```bash
+# Run all validation checks
+npm run validate
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Making Database Changes
+```bash
+# 1. Modify prisma/schema.prisma
+# 2. Create migration
+npm run db:migrate
 
-## Learn More
+# 3. Generate client (automatically runs on build)
+npm run db:generate
 
-To learn more about Next.js, take a look at the following resources:
+# 4. Test changes
+npm run check:health
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Resetting Development Database
+```bash
+# Reset and seed with sample data
+npm run db:reset:seed
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📚 Learn More
 
-## Deploy on Vercel
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API
+- [Prisma Documentation](https://www.prisma.io/docs) - learn about Prisma ORM
+- [TypeScript Documentation](https://www.typescriptlang.org/docs/) - learn about TypeScript
+
+## 🚢 Deployment
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Before deploying:
+1. Set up environment variables in your hosting platform
+2. Run `npm run build` to verify the build works
+3. Ensure your database is accessible from the production environment
+
+## 📖 Scripts Documentation
+
+For detailed documentation about the utility scripts, see [scripts/README.md](./scripts/README.md).

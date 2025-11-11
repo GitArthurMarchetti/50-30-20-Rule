@@ -1,5 +1,5 @@
 import { SessionUser } from "@/app/lib/auth-server";
-import { AuthenticatedHandler, withAuth } from "@/app/lib/auth-helpers";
+import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-helpers";
 import { badRequestResponse, notFoundResponse, internalErrorResponse } from "@/app/lib/errors/responses";
 import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
 import { prisma } from "@/prisma/db";
@@ -9,7 +9,7 @@ import { TransactionType } from "@/app/generated/prisma";
 
 const postHandler: AuthenticatedHandler<Record<string, never>> = async (
   request: NextRequest,
-  context: { params: Record<string, never> },
+  context: RouteContext<Record<string, never>>,
   session: SessionUser
 ) => {
   try {

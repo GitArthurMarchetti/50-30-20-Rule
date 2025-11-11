@@ -13,7 +13,7 @@ export type AuthenticatedHandler<TParams> = (
   session: SessionUser
 ) => Promise<NextResponse>;
 
-export function withAuth<TParams extends Record<string, string>>(
+export function withAuth<TParams extends Record<string, unknown>>(
   handler: AuthenticatedHandler<TParams>
 ) {
   return async (req: NextRequest, context: RouteContext<TParams>) => {

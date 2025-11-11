@@ -1,5 +1,5 @@
 import { SessionUser } from "@/app/lib/auth-server";
-import { AuthenticatedHandler, withAuth } from "@/app/lib/auth-helpers";
+import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-helpers";
 import { badRequestResponse, conflictResponse, internalErrorResponse } from "@/app/lib/errors/responses";
 import { prisma } from "@/prisma/db";
 import { TransactionType } from "@/app/generated/prisma";
@@ -8,7 +8,7 @@ import { safeParseJson, isValidTransactionType, isValidCategoryName } from "@/ap
 
 const getHandler: AuthenticatedHandler<Record<string, never>> = async (
   request: NextRequest,
-  context: { params: Record<string, never> },
+  context: RouteContext<Record<string, never>>,
   session: SessionUser
 ) => {
   const { searchParams } = new URL(request.url);
@@ -35,7 +35,7 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
 
 const postHandler: AuthenticatedHandler<Record<string, never>> = async (
   request: NextRequest,
-  context: { params: Record<string, never> },
+  context: RouteContext<Record<string, never>>,
   session: SessionUser
 ) => {
   const parseResult = await safeParseJson<{ name?: unknown; type?: string }>(request);

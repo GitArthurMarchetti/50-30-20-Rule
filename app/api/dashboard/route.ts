@@ -1,6 +1,6 @@
 import { Transaction, TransactionType } from "@/app/generated/prisma";
 import { SessionUser } from "@/app/lib/auth-server";
-import { AuthenticatedHandler, withAuth } from "@/app/lib/auth-helpers";
+import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-helpers";
 import { badRequestResponse } from "@/app/lib/errors/responses";
 import { formatCurrency } from "@/app/lib/formatters";
 import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
@@ -48,7 +48,7 @@ const calculateCategoryData = (
 
 const getHandler: AuthenticatedHandler<Record<string, never>> = async (
   request: NextRequest,
-  context: { params: Record<string, never> },
+  context: RouteContext<Record<string, never>>,
   session: SessionUser
 ) => {
   const { searchParams } = new URL(request.url);

@@ -1,13 +1,13 @@
 import { getAnnualSummary } from "@/app/lib/annualSumarry-service";
 import { SessionUser } from "@/app/lib/auth-server";
-import { AuthenticatedHandler, withAuth } from "@/app/lib/auth-helpers";
+import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-helpers";
 import { badRequestResponse, internalErrorResponse } from "@/app/lib/errors/responses";
 import { NextRequest, NextResponse } from "next/server";
 import { isValidYear } from "@/app/lib/validators";
 
 const getHandler: AuthenticatedHandler<Record<string, never>> = async (
     request: NextRequest,
-    context: { params: Record<string, never> },
+    context: RouteContext<Record<string, never>>,
     session: SessionUser
 ) => {
     try {

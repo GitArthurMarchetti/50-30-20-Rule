@@ -1,12 +1,12 @@
 import { SessionUser } from "@/app/lib/auth-server";
-import { AuthenticatedHandler, withAuth } from "@/app/lib/auth-helpers";
+import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-helpers";
 import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
 import { NextRequest, NextResponse } from "next/server";
 import { internalErrorResponse } from "@/app/lib/errors/responses";
 
 const postHandler: AuthenticatedHandler<Record<string, never>> = async (
   request: NextRequest,
-  context: { params: Record<string, never> },
+  context: RouteContext<Record<string, never>>,
   session: SessionUser
 ) => {
   try {

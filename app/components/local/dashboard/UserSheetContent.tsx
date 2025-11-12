@@ -1,6 +1,8 @@
-import { SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react"; 
+import { SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet"
+import { SheetSkeleton } from "@/components/ui/sheet-skeleton"
+import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { Heart } from "lucide-react"
 
 interface UserData {
   id: number;
@@ -9,77 +11,89 @@ interface UserData {
 }
 
 export function UserSheet() {
-    const router = useRouter();
+  const router = useRouter()
 
-    const [user, setUser] = useState<UserData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<UserData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-    useEffect(() => {
-      const fetchUser = async () => {
-        setIsLoading(true);
-        try {
-          const response = await fetch('/api/me'); 
+  useEffect(() => {
+    const fetchUser = async () => {
+      setIsLoading(true)
+      try {
+        const response = await fetch("/api/me")
+
+        if (response.ok) {
+          const data: UserData = await response.json()
+          setUser(data)
+        } else {
+          setUser(null)
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error)
+        setUser(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchUser()
+  }, [])
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/logout", {
+        method: "POST",
+      })
+
+      if (response.ok) {
+        setUser(null)
+        router.push("/login")
+      } else {
+        console.error("Logout failed")
+      }
+    } catch (error) {
+      console.error("Error during logout:", error)
+    }
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      {isLoading ? (
+        <SheetSkeleton
+          disableBody
+          footer={[{ width: "w-full", height: "h-9" }]}
+        />
+      ) : user ? (
+        <>
+          <SheetHeader className="pb-6">
+            <SheetTitle className="text-2xl font-bold">
+              Hello, {user.username}!
+            </SheetTitle>
+            <SheetDescription className="text-base text-muted-foreground mt-2">
+              {user.email}
+            </SheetDescription>
+          </SheetHeader>
           
-          if (response.ok) {
-            const data: UserData = await response.json();
-            setUser(data);
-          } else {
-            setUser(null); 
-          }
-        } catch (error) {
-          console.error("Error fetching user:", error);
-          setUser(null);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      fetchUser();
-    }, []); 
-
-    const handleLogout = async () => {
-        try {
-            const response = await fetch('/api/logout', { //
-                method: 'POST',
-            });
-
-            if (response.ok) {
-                setUser(null); 
-                router.push('/login');
-            } else {
-                console.error("Logout failed");
-            }
-        } catch (error) {
-            console.error("Error during logout:", error);
-        }
-    };
-
-    return (
-        <div>
-
-                  {isLoading ? (
-                    <p>Carregando...</p>
-                  ) : user ? (
-
-
-                    <>
-                <SheetHeader>
-                <SheetTitle>Hello {user.username} {user.email}</SheetTitle>
-              
-                    </SheetHeader>
-                          <SheetFooter>
-                          <button onClick={handleLogout} disabled={isLoading}>
-                              Sair (Logout)
-                          </button>
-                      </SheetFooter>
-                      </>
-                  ) : (
-                    <p>Você não está logado.</p>
-                  )}
-               
-
-
-      
+          <div className="flex-1" />
+          
+          <SheetFooter className="flex-col gap-4 border-t pt-4 mt-auto">
+            <button
+              className="w-full inline-flex h-10 items-center justify-center rounded-md transaction-background cursor-pointer transaction px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+              onClick={handleLogout}
+              disabled={isLoading}
+            >
+              {isLoading ? "Exiting..." : "Logout"}
+            </button>
+            <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+              Made by <Heart className="size-3 fill-red-500 text-red-500" /> by Arthur Marchetti
+            </p>
+          </SheetFooter>
+        </>
+      ) : (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-sm text-muted-foreground">Você não está logado.</p>
         </div>
-    );
+      )}
+    </div>
+  )
 }

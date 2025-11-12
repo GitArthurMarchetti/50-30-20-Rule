@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { Prisma } from "@/app/generated/prisma";
 import { badRequestResponse, conflictResponse, internalErrorResponse } from "@/app/lib/errors/responses";
 import { safeParseJson, isValidEmail } from "@/app/lib/validators";
+import { initializeDefaultCategories } from "@/app/lib/category-helpers";
 
 export async function POST(req: Request) {
   try {
@@ -52,13 +53,22 @@ export async function POST(req: Request) {
 
     const hash = await bcrypt.hash(pass, 10);
 
-    await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         username: usernameNorm,
         email: emailNorm,
         password_hash: hash,
       },
     });
+
+    // Initialize default categories for the new user
+    try {
+      const categoriesCreated = await initializeDefaultCategories(newUser.id);
+      console.log(`Created ${categoriesCreated} default categories for user ${newUser.id}`);
+    } catch (error) {
+      // Log error but don't fail user registration if categories can't be created
+      console.error("Error creating default categories for new user:", error);
+    }
 
     return NextResponse.json({ message: "User created" }, { status: 201 });
   } catch (e: unknown) {

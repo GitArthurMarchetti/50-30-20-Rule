@@ -76,6 +76,14 @@ class CategoryService extends ApiClient {
   async deleteCategory(id: number): Promise<void> {
     return this.delete(`/api/categories/${id}`);
   }
+
+  /**
+   * Initializes default categories for the current user
+   * @returns Promise with initialization result
+   */
+  async initializeDefaultCategories(): Promise<{ message: string; categoriesCreated: number; existingCategories: number }> {
+    return this.post<{ message: string; categoriesCreated: number; existingCategories: number }>('/api/categories/initialize', {});
+  }
 }
 
 // Export singleton instance

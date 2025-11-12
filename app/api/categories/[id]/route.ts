@@ -88,6 +88,31 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
     return notFoundResponse("Category not found");
   }
 
+  // Check for duplicate category with the final name and type (after update)
+  // This handles all cases: name only, type only, or both name and type
+  const finalName = updateData.name || existingCategory.name;
+  const finalType = updateData.type || existingCategory.type;
+  
+  // Only check for duplicates if name or type is actually changing
+  if (updateData.name || updateData.type) {
+    const duplicateCategory = await prisma.category.findFirst({
+      where: {
+        userId: session.userId,
+        name: finalName,
+        type: finalType,
+        NOT: {
+          id: categoryId, // Exclude the current category
+        },
+      },
+    });
+
+    if (duplicateCategory) {
+      return conflictResponse(
+        `Category '${finalName}' already exists for type '${finalType}'`
+      );
+    }
+  }
+
   try {
     const category = await prisma.category.update({
       where: {
@@ -103,8 +128,9 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
         return notFoundResponse("Category not found");
       }
       if (error.code === "P2002") {
+        // This should not happen due to our check above, but handle it just in case
         return conflictResponse(
-          `Category '${body.name || "with this name"}' already exists for this type`
+          `Category '${updateData.name || existingCategory.name}' already exists for this type`
         );
       }
     }

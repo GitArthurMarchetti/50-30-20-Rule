@@ -6,6 +6,24 @@ import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+function hasDialogTitle(node: React.ReactNode): boolean {
+  return React.Children.toArray(node).some((child) => {
+    if (!React.isValidElement(child)) {
+      return false
+    }
+
+    if (child.type === SheetPrimitive.Title) {
+      return true
+    }
+
+    if (child.props?.children) {
+      return hasDialogTitle(child.props.children)
+    }
+
+    return false
+  })
+}
+
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
 }
@@ -48,10 +66,22 @@ function SheetContent({
   className,
   children,
   side = "right",
+  fallbackTitle = "Sheet dialog",
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
+  fallbackTitle?: string
 }) {
+  const hasAccessibleTitle = React.useMemo(() => {
+    if (ariaLabel || ariaLabelledBy) {
+      return true
+    }
+
+    return hasDialogTitle(children)
+  }, [ariaLabel, ariaLabelledBy, children])
+
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -69,8 +99,15 @@ function SheetContent({
             "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t",
           className
         )}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
         {...props}
       >
+        {!hasAccessibleTitle ? (
+          <SheetPrimitive.Title className="sr-only">
+            {fallbackTitle}
+          </SheetPrimitive.Title>
+        ) : null}
         {children}
         <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
           <XIcon className="size-4" />

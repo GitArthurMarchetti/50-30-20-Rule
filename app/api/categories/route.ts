@@ -5,6 +5,7 @@ import { prisma } from "@/prisma/db";
 import { TransactionType } from "@/app/generated/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { safeParseJson, isValidTransactionType, isValidCategoryName } from "@/app/lib/validators";
+import { initializeDefaultCategories } from "@/app/lib/category-helpers";
 
 const getHandler: AuthenticatedHandler<Record<string, never>> = async (
   request: NextRequest,
@@ -13,6 +14,21 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
 ) => {
   const { searchParams } = new URL(request.url);
   const typeParam = searchParams.get("type");
+
+  // Check if user has any categories - if not, automatically create default categories
+  const userCategoryCount = await prisma.category.count({
+    where: { userId: session.userId },
+  });
+
+  if (userCategoryCount === 0) {
+    // User has no categories, automatically create default categories
+    try {
+      await initializeDefaultCategories(session.userId);
+    } catch (error) {
+      console.error("Error auto-initializing default categories:", error);
+      // Continue even if initialization fails - we'll return empty array
+    }
+  }
 
   const where: { userId: number; type?: TransactionType } = {
     userId: session.userId,

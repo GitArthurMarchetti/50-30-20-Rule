@@ -18,7 +18,6 @@ export default function FinancialStatement({
   totalReserves,
   finalBalance,
 }: FinancialStatementProps) {
-
   const isRowInBadSituation = (label: string, value: number) => {
     if (totalIncome === 0) return false;
     const percentageOfRevenue = (value / totalIncome) * 100;
@@ -41,9 +40,20 @@ export default function FinancialStatement({
   };
 
   const calculatePercentage = (value: number) => {
-    if (totalIncome === 0) return "0%";
-    const percentage = (value / totalIncome) * 100;
-    return `${percentage.toFixed(0)}%`;
+    // Ensure we have valid numbers
+    const income = Number(totalIncome) || 0;
+    const val = Number(value) || 0;
+    
+    if (income === 0) {
+      return "0%";
+    }
+    
+    // Handle negative values (like Result can be negative)
+    const percentage = (val / income) * 100;
+    
+    // Round to 1 decimal place for better precision, but show as integer if whole number
+    const rounded = Math.round(percentage * 10) / 10;
+    return rounded % 1 === 0 ? `${rounded.toFixed(0)}%` : `${rounded.toFixed(1)}%`;
   };
 
   const statementData = {

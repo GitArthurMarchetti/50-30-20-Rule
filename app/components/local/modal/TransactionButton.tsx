@@ -6,6 +6,15 @@ import { TransactionType } from "@/app/generated/prisma";
 import { categoryService, Category } from "@/app/lib/api/category-service";
 import { transactionService } from "@/app/lib/api/transaction-service";
 import { ApiError } from "@/app/lib/api/api-client";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface AddTransactionButtonProps {
   categoryType: TransactionType;
@@ -14,7 +23,7 @@ interface AddTransactionButtonProps {
 }
 
 export default function AddTransactionButton({ categoryType, onTransactionAdded, selectedDate }: AddTransactionButtonProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(selectedDate.toISOString().split('T')[0]);
@@ -34,7 +43,7 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
   }, [selectedDate]); 
 
   useEffect(() => {
-    if (isOpen) {
+    if (open) {
       setDescription("");
       setAmount("");
       setCategoryId("");
@@ -45,20 +54,28 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
       newDate.setDate(1); 
       setDate(newDate.toISOString().split('T')[0]);
 
+      // Ensure categoryType is properly serialized as a string
+      const typeString = String(categoryType);
+      console.log("Fetching categories for type:", typeString, categoryType);
+      
       categoryService.getAll(categoryType)
         .then((data) => {
-          setCategories(data);
+          console.log("Categories loaded:", data);
+          setCategories(Array.isArray(data) ? data : []);
         })
         .catch((err) => {
           console.error("Failed to fetch categories", err);
           setCategories([]);
-          setError(err instanceof ApiError ? err.message : "Failed to load categories");
+          // Don't set error state for empty categories - it's valid to have no categories
+          if (err instanceof ApiError && err.statusCode >= 500) {
+            setError(err.message || "Failed to load categories");
+          }
         })
         .finally(() => {
           setIsCategoriesLoading(false); 
         });
     }
-  }, [isOpen, selectedDate, categoryType]); 
+  }, [open, selectedDate, categoryType]); 
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -76,18 +93,33 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
         setIsLoading(false);
         return;
       }
+      if (numericAmount < 0) {
+        setError("Value cannot be negative.");
+        setIsLoading(false);
+        return;
+      }
       
-      const finalCategoryId = categoryId ? parseInt(categoryId, 10) : null;
+      // Convert categoryId from string (form) to number (API) or null
+      const finalCategoryId = categoryId && categoryId !== '' 
+        ? parseInt(categoryId, 10) 
+        : null;
+      
+      // Validate categoryId is a valid number if provided
+      if (finalCategoryId !== null && (isNaN(finalCategoryId) || finalCategoryId <= 0)) {
+        setError("Invalid category selected");
+        setIsLoading(false);
+        return;
+      }
 
       await transactionService.create({
         description,
         amount: numericAmount,
         date: new Date(date + 'T00:00:00'),
-        type: categoryType,
-        categoryId: finalCategoryId,
+        type: categoryType, // TransactionType: INCOME, WANTS, NEEDS, RESERVES, INVESTMENTS
+        categoryId: finalCategoryId, // Category ID: number referencing a category like "Groceries", "Salary"
       });
       
-      setIsOpen(false);
+      setOpen(false);
       onTransactionAdded();
     } catch (err) {
       const message = err instanceof ApiError
@@ -101,64 +133,124 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
     }
   };
 
-  const openModal = () => {
-    setIsOpen(true);
-  }
-
   return (
-    <>
-      <button onClick={openModal} className="simple-button-style">
-        <PlusCircle size={20} />
-      </button>
-      {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-           <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">New Transaction in <span className="capitalize">{categoryType.toLowerCase()}</span></h2>
-            <form onSubmit={handleSubmit}>
-
-
-              <div className="mb-4">
-                <label htmlFor="description" className="block text-sm font-medium mb-1">Name</label>
-                <input type="text" id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="amount" className="block text-sm font-medium mb-1">Value</label>
-                <input type="number" id="amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0,00" step="0.01" required />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="date" className="block text-sm font-medium mb-1">Date</label>
-                <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
-              </div>
-
-              <div className="mb-4">
-                <label htmlFor="categoryId" className="block text-sm font-medium mb-1">Category</label>
-                <select
-                    name="categoryId"
-                    id="categoryId"
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    disabled={isCategoriesLoading} 
-                >
-                    <option value="">{isCategoriesLoading ? 'Loading...' : 'No Category'}</option>
-                    
-                    {Array.isArray(categories) && categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                        </option>
-                    ))}
-                </select>
-              </div>
-
-              {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-              <div className="flex justify-end gap-4">
-                <button type="button" onClick={() => setIsOpen(false)} className="px-4 py-2 bg-gray-600 rounded-md hover:bg-gray-500">Cancelar</button>
-                <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-500 disabled:bg-gray-400">{isLoading ? 'Salvando...' : 'Salvar'}</button>
-              </div>
-            </form>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button className="simple-button-style">
+          <PlusCircle size={20} />
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px] border-none">
+        <DialogHeader>
+          <DialogTitle>New Transaction in <span className="capitalize">{categoryType.toLowerCase()}</span></DialogTitle>
+          <DialogDescription>
+            Add a new transaction to your {categoryType.toLowerCase()} category.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="description" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Name
+            </label>
+            <input
+              type="text"
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              required
+            />
           </div>
-        </div>
-      )}
-    </>
+          <div className="space-y-2">
+            <label htmlFor="amount" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Value
+            </label>
+            <input
+              type="number"
+              id="amount"
+              value={amount}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Prevent negative values
+                if (value === '' || (parseFloat(value) >= 0 && !isNaN(parseFloat(value)))) {
+                  setAmount(value);
+                }
+              }}
+              onKeyDown={(e) => {
+                // Prevent minus sign, negative numbers
+                if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                  e.preventDefault();
+                }
+              }}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="0,00"
+              step="0.01"
+              min="0"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="date" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Date
+            </label>
+            <input
+              type="date"
+              id="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="categoryId" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Category
+            </label>
+            <select
+              name="categoryId"
+              id="categoryId"
+              value={categoryId}
+              onChange={(e) => {
+                console.log("Category selected:", e.target.value);
+                setCategoryId(e.target.value);
+              }}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isCategoriesLoading}
+              required={false}
+            >
+              <option value="">{isCategoriesLoading ? 'Loading categories...' : 'No Category'}</option>
+              {Array.isArray(categories) && categories.length > 0 ? (
+                categories.map((cat) => (
+                  <option key={cat.id} value={String(cat.id)}>
+                    {cat.name}
+                  </option>
+                ))
+              ) : !isCategoriesLoading ? (
+                <option value="" disabled>
+                  No categories available
+                </option>
+              ) : null}
+            </select>
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+            >
+              {isLoading ? 'Salvando...' : 'Salvar'}
+            </button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -220,6 +220,10 @@ body {
 }
 
 
+.border-input{
+  border-color: var(--background-transaction);
+}
+
 
 .dark {
   --background: oklch(0.141 0.005 285.823);

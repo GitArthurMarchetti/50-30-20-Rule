@@ -32,7 +32,7 @@ export default function UserWelcome({
                     <FaUserCircle className="h-full w-auto  simple-button-style" />
                 </SheetTrigger>
 
-                <SheetContent side="left">
+                <SheetContent side="left" className="border-none">
                     <UserSheet />
                 </SheetContent>
             </Sheet>

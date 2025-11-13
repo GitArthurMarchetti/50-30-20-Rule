@@ -2,9 +2,9 @@
 
 import { TransactionType } from "@/app/generated/prisma";
 import { useEffect, useState, FormEvent } from "react";
-import { categoryService, Category } from "@/app/lib/api/category-service";
-import { transactionService } from "@/app/lib/api/transaction-service";
-import { ApiError } from "@/app/lib/api/api-client";
+import { categoryService, Category } from "@/app/lib/client/category-service";
+import { transactionService } from "@/app/lib/client/transaction-service";
+import { ApiError } from "@/app/lib/client/api-client";
 import {
   Dialog,
   DialogContent,

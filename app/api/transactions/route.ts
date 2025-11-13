@@ -1,11 +1,12 @@
 import { SessionUser } from "@/app/lib/auth-server";
 import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-helpers";
 import { badRequestResponse, notFoundResponse, internalErrorResponse } from "@/app/lib/errors/responses";
-import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
+import { updateMonthlySummaryIncremental } from "@/app/lib/services/summary-service";
 import { prisma } from "@/prisma/db";
 import { NextRequest, NextResponse } from "next/server";
 import { safeParseJson, isValidTransactionType, isValidAmount, parseAndValidateDate, isCategoryTypeCompatible } from "@/app/lib/validators";
 import { TransactionType } from "@/app/generated/prisma";
+import { Decimal } from "@prisma/client/runtime/library";
 
 const postHandler: AuthenticatedHandler<Record<string, never>> = async (
   request: NextRequest,
@@ -86,7 +87,15 @@ const postHandler: AuthenticatedHandler<Record<string, never>> = async (
       },
     });
 
-    await getOrCreateMonthlySummary(session.userId, transactionDate);
+    // OTIMIZAÇÃO: Atualização incremental O(1) em vez de recalcular tudo O(n)
+    await updateMonthlySummaryIncremental(
+      session.userId,
+      transactionDate,
+      {
+        type: transactionType,
+        newAmount: new Decimal(amount), // Nova transação - apenas adiciona
+      }
+    );
 
     return NextResponse.json(newTransaction, { status: 201 });
   } catch (error) {

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { annualSummaryService, AnnualSummaryData } from "@/app/lib/api/annual-summary-service";
-import { ApiError } from "@/app/lib/api/api-client";
+import { annualSummaryService, AnnualSummaryData } from "@/app/lib/client/annual-summary-service";
+import { ApiError } from "@/app/lib/client/api-client";
 
 export default function AnnualSummary() {
     const [summary, setSummary] = useState<AnnualSummaryData | null>(null);

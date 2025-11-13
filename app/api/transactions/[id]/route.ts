@@ -2,8 +2,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma/db";
-import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
-import { SessionUser } from "@/app/lib/auth-server"; 
+import { updateMonthlySummaryIncremental } from "@/app/lib/services/summary-service";
+import { SessionUser } from "@/app/lib/auth-server";
+import { Decimal } from "@prisma/client/runtime/library"; 
 
 import {
   badRequestResponse,
@@ -67,6 +68,20 @@ const deleteHandler: AuthenticatedHandler<RouteParams> = async (
   }
 
   try {
+    // Busca a transação antes de deletar para atualizar o summary
+    const transactionToDelete = await prisma.transaction.findUnique({
+      where: {
+        id_userId: {
+          id: transactionId,
+          userId: session.userId,
+        },
+      },
+    });
+
+    if (!transactionToDelete) {
+      return notFoundResponse("Transaction not found");
+    }
+
     await prisma.transaction.delete({
       where: {
         id_userId: {
@@ -75,6 +90,16 @@ const deleteHandler: AuthenticatedHandler<RouteParams> = async (
         },
       },
     });
+
+    // OTIMIZAÇÃO: Atualização incremental O(1) em vez de recalcular tudo O(n)
+    await updateMonthlySummaryIncremental(
+      session.userId,
+      transactionToDelete.date,
+      {
+        type: transactionToDelete.type,
+        oldAmount: transactionToDelete.amount, // Remove valor da transação deletada
+      }
+    );
 
     return NextResponse.json({ message: "Transaction deleted successfully" });
   } catch (error) {
@@ -194,7 +219,65 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
       },
     });
 
-    await getOrCreateMonthlySummary(session.userId, updatedTransaction.date);
+    // OTIMIZAÇÃO: Atualização incremental O(1) em vez de recalcular tudo O(n)
+    // Se o mês mudou, atualiza ambos os meses
+    const oldMonth = existingTransaction.date;
+    const newMonth = updatedTransaction.date;
+    const monthChanged = 
+      oldMonth.getFullYear() !== newMonth.getFullYear() ||
+      oldMonth.getMonth() !== newMonth.getMonth();
+    
+    const typeChanged = existingTransaction.type !== transactionType;
+
+    if (monthChanged) {
+      // Remove do mês antigo (tipo antigo)
+      await updateMonthlySummaryIncremental(
+        session.userId,
+        oldMonth,
+        {
+          type: existingTransaction.type,
+          oldAmount: existingTransaction.amount,
+        }
+      );
+      // Adiciona ao mês novo (tipo novo)
+      await updateMonthlySummaryIncremental(
+        session.userId,
+        newMonth,
+        {
+          type: transactionType,
+          newAmount: new Decimal(amount),
+        }
+      );
+    } else if (typeChanged) {
+      // Mesmo mês, mas tipo mudou - remove do tipo antigo e adiciona ao tipo novo
+      await updateMonthlySummaryIncremental(
+        session.userId,
+        transactionDate,
+        {
+          type: existingTransaction.type,
+          oldAmount: existingTransaction.amount, // Remove do tipo antigo
+        }
+      );
+      await updateMonthlySummaryIncremental(
+        session.userId,
+        transactionDate,
+        {
+          type: transactionType,
+          newAmount: new Decimal(amount), // Adiciona ao tipo novo
+        }
+      );
+    } else {
+      // Mesmo mês, mesmo tipo - apenas atualiza diferença de valor
+      await updateMonthlySummaryIncremental(
+        session.userId,
+        transactionDate,
+        {
+          type: transactionType,
+          oldAmount: existingTransaction.amount, // Remove valor antigo
+          newAmount: new Decimal(amount), // Adiciona valor novo
+        }
+      );
+    }
 
     return NextResponse.json(updatedTransaction);
   } catch (error) {

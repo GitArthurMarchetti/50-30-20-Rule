@@ -1,4 +1,4 @@
-import { getAnnualSummary } from "@/app/lib/annualSumarry-service";
+import { getAnnualSummary } from "@/app/lib/services/annual-summary-service";
 
 import { SessionUser } from "@/app/lib/auth-server";
 import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-helpers";

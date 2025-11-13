@@ -1,6 +1,6 @@
 import { SessionUser } from "@/app/lib/auth-server";
 import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-helpers";
-import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
+import { getOrCreateMonthlySummary } from "@/app/lib/services/summary-service";
 import { NextRequest, NextResponse } from "next/server";
 import { internalErrorResponse } from "@/app/lib/errors/responses";
 

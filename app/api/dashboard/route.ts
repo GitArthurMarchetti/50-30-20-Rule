@@ -3,7 +3,7 @@ import { SessionUser } from "@/app/lib/auth-server";
 import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-helpers";
 import { badRequestResponse } from "@/app/lib/errors/responses";
 import { formatCurrency } from "@/app/lib/formatters";
-import { getOrCreateMonthlySummary } from "@/app/lib/summary-service";
+import { getOrCreateMonthlySummary } from "@/app/lib/services/summary-service";
 import { prisma } from "@/prisma/db";
 import { Decimal } from "@prisma/client/runtime/library";
 import { NextRequest, NextResponse } from "next/server";

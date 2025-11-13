@@ -6,7 +6,7 @@ import Sidebar from "./components/local/dashboard/Header/Sidebar";
 import DashboardHeader from "./components/local/dashboard/Header/DashboardHeader";
 import FinancialCategoryCard from "./components/local/dashboard/Header/financials/FinancialCategoryCard";
 import FinancialEntryRow from "./components/local/dashboard/Header/financials/FinancialEntryRow";
-import { categoryService } from "./lib/api/category-service";
+import { categoryService } from "./lib/client/category-service";
 
 function DashboardContent() {
 

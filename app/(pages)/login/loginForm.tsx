@@ -1,8 +1,8 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { authService } from "@/app/lib/api/auth-service";
-import { ApiError } from "@/app/lib/api/api-client";
+import { authService } from "@/app/lib/client/auth-service";
+import { ApiError } from "@/app/lib/client/api-client";
 
 
 export function getErrorMessage(error: unknown) {

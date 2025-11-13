@@ -2,10 +2,10 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { DashboardData } from '../types/dashboardTypes';
-import { dashboardService } from '../lib/api/dashboard-service';
-import { transactionService } from '../lib/api/transaction-service';
-import { formatDateForAPI } from '../lib/api/utils';
-import { ApiError } from '../lib/api/api-client';
+import { dashboardService } from '../lib/client/dashboard-service';
+import { transactionService } from '../lib/client/transaction-service';
+import { formatDateForAPI } from '../lib/client/utils';
+import { ApiError } from '../lib/client/api-client';
 
 interface DashboardContextType {
   data: DashboardData | null;

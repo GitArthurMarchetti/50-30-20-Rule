@@ -16,8 +16,10 @@ function hasDialogTitle(node: React.ReactNode): boolean {
       return true
     }
 
-    if (child.props?.children) {
-      return hasDialogTitle(child.props.children)
+    // Type-safe access to children prop
+    const props = child.props as { children?: React.ReactNode }
+    if (props?.children) {
+      return hasDialogTitle(props.children)
     }
 
     return false

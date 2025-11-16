@@ -27,6 +27,7 @@
     "check:env": "tsx scripts/check-env.ts",
     "check:health": "tsx scripts/health-check.ts",
     "generate:jwt-secret": "tsx scripts/generate-jwt-secret.ts",
+    "benchmark:dashboard": "tsx scripts/benchmark-dashboard.ts",
     "db:reset:full": "tsx scripts/reset-db.ts",
     "db:reset:seed": "tsx scripts/reset-db.ts --seed",
     "prebuild": "prisma generate",

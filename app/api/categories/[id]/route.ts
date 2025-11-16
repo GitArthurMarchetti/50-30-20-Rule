@@ -88,6 +88,24 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
     return notFoundResponse("Category not found");
   }
 
+  // CRITICAL: If changing category type, check if there are transactions using this category
+  // Changing type would make existing transactions incompatible
+  if (updateData.type && updateData.type !== existingCategory.type) {
+    const transactionsCount = await prisma.transaction.count({
+      where: {
+        categoryId: categoryId,
+        userId: session.userId,
+      },
+    });
+
+    if (transactionsCount > 0) {
+      return badRequestResponse(
+        `Cannot change category type. ${transactionsCount} transaction(s) are using this category. ` +
+        `Please update or remove those transactions first, or delete the category and create a new one.`
+      );
+    }
+  }
+
   // Check for duplicate category with the final name and type (after update)
   // This handles all cases: name only, type only, or both name and type
   const finalName = updateData.name || existingCategory.name;

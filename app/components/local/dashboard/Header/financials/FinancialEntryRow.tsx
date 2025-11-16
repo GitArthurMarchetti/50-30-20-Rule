@@ -92,12 +92,9 @@ export default function FinancialEntryRow(props: FinancialEntryRowProps) {
         <div className="h-full flex flex-col">
           <span className="secondary-text truncate">{label}</span>
           
-          {/* --- INÍCIO DA MUDANÇA --- */}
-          {/* 4. Exibe o nome da categoria ou um fallback */}
           <span className="secondary-text truncate text-xs"> 
             {categoryName || 'Sem Categoria'}
           </span>
-          {/* --- FIM DA MUDANÇA --- */}
 
         </div>
         <div className="flex items-center gap-2">

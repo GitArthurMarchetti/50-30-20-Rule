@@ -79,37 +79,81 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
   const firstDayOfCurrentMonth = new Date(year, monthIndex - 1, 1);
   const lastDayOfCurrentMonth = new Date(year, monthIndex, 0, 23, 59, 59);
 
-  const currentMonthTransactions = await prisma.transaction.findMany({
-    where: {
-      userId: session.userId,
-      date: {
-        gte: firstDayOfCurrentMonth,
-        lte: lastDayOfCurrentMonth,
+  // OTIMIZAÇÃO: Use SQL aggregation instead of fetching all transactions and filtering in JavaScript
+  // This reduces data transfer and processes in the database (O(1) vs O(n))
+  const dateRange = {
+    gte: firstDayOfCurrentMonth,
+    lte: lastDayOfCurrentMonth,
+  };
+
+  const [
+    incomeResult,
+    needsResult,
+    wantsResult,
+    reservesResult,
+    investmentsResult,
+    currentMonthTransactions, // Still need transactions for items list
+  ] = await Promise.all([
+    prisma.transaction.aggregate({
+      where: {
+        userId: session.userId,
+        date: dateRange,
+        type: TransactionType.INCOME,
       },
-    },
-    orderBy: { date: "desc" },
-  });
+      _sum: { amount: true },
+    }),
+    prisma.transaction.aggregate({
+      where: {
+        userId: session.userId,
+        date: dateRange,
+        type: TransactionType.NEEDS,
+      },
+      _sum: { amount: true },
+    }),
+    prisma.transaction.aggregate({
+      where: {
+        userId: session.userId,
+        date: dateRange,
+        type: TransactionType.WANTS,
+      },
+      _sum: { amount: true },
+    }),
+    prisma.transaction.aggregate({
+      where: {
+        userId: session.userId,
+        date: dateRange,
+        type: TransactionType.RESERVES,
+      },
+      _sum: { amount: true },
+    }),
+    prisma.transaction.aggregate({
+      where: {
+        userId: session.userId,
+        date: dateRange,
+        type: TransactionType.INVESTMENTS,
+      },
+      _sum: { amount: true },
+    }),
+    // Still fetch transactions for items list (needed for calculateCategoryData)
+    prisma.transaction.findMany({
+      where: {
+        userId: session.userId,
+        date: dateRange,
+      },
+      orderBy: { date: "desc" },
+    }),
+  ]);
 
-  let baseIncome = currentMonthTransactions
-    .filter((t) => t.type === "INCOME")
-    .reduce((acc, t) => acc.add(t.amount), new Decimal(0));
-
+  // Use aggregated results instead of filtering/reducing in JavaScript
+  let baseIncome = new Decimal(incomeResult._sum.amount ?? 0);
   if (includeResult) {
     baseIncome = baseIncome.add(lastMonthsResultValue);
   }
 
-  const needsExpenses = currentMonthTransactions
-    .filter((t) => t.type === "NEEDS")
-    .reduce((s, t) => s.add(t.amount), new Decimal(0));
-  const wantsExpenses = currentMonthTransactions
-    .filter((t) => t.type === "WANTS")
-    .reduce((s, t) => s.add(t.amount), new Decimal(0));
-  const reservesTotal = currentMonthTransactions
-    .filter((t) => t.type === "RESERVES")
-    .reduce((s, t) => s.add(t.amount), new Decimal(0));
-  const investmentsTotal = currentMonthTransactions
-    .filter((t) => t.type === "INVESTMENTS")
-    .reduce((s, t) => s.add(t.amount), new Decimal(0));
+  const needsExpenses = new Decimal(needsResult._sum.amount ?? 0);
+  const wantsExpenses = new Decimal(wantsResult._sum.amount ?? 0);
+  const reservesTotal = new Decimal(reservesResult._sum.amount ?? 0);
+  const investmentsTotal = new Decimal(investmentsResult._sum.amount ?? 0);
   
   const result = baseIncome.sub(needsExpenses).sub(wantsExpenses).sub(reservesTotal).sub(investmentsTotal);
 

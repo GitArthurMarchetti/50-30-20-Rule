@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { signJwt } from "@/app/lib/jwt";
 import { unauthorizedResponse, internalErrorResponse, badRequestResponse } from "@/app/lib/errors/responses";
-import { safeParseJson } from "@/app/lib/validators";
+import { safeParseJson, isValidEmail } from "@/app/lib/validators";
 
 
 export async function POST(req: Request) {
@@ -15,14 +15,18 @@ export async function POST(req: Request) {
 
     const { email, password } = parseResult.data!;
 
-
-    
     if (!email || !password) {
       return badRequestResponse("Email and password are required");
     }
 
     const emailNorm = String(email).trim().toLowerCase();
     const passwordString = String(password);
+
+    // SECURITY: Validate email format before querying database
+    // Prevents unnecessary database queries and potential timing attacks
+    if (!isValidEmail(emailNorm)) {
+      return badRequestResponse("Invalid email format");
+    }
 
     const user = await prisma.user.findUnique({ where: { email: emailNorm } });
     if (!user) {

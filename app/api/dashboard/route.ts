@@ -146,6 +146,9 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
 
   // Use aggregated results instead of filtering/reducing in JavaScript
   let baseIncome = new Decimal(incomeResult._sum.amount ?? 0);
+  // Income apenas do mês atual (para cálculo de reserves e investments - não deve incluir lastMonthsResult)
+  const currentMonthIncome = new Decimal(incomeResult._sum.amount ?? 0);
+  
   if (includeResult) {
     baseIncome = baseIncome.add(lastMonthsResultValue);
   }
@@ -181,13 +184,13 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
         TransactionType.RESERVES,
         10,
         currentMonthTransactions,
-        baseIncome
+        currentMonthIncome  // Usa apenas o income do mês atual, não inclui lastMonthsResult
       ),
       investments: calculateCategoryData(
         TransactionType.INVESTMENTS,
         10,
         currentMonthTransactions,
-        baseIncome
+        currentMonthIncome  // Usa apenas o income do mês atual, não inclui lastMonthsResult
       ),
     },
 

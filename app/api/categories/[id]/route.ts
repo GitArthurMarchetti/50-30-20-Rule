@@ -5,6 +5,7 @@ import { prisma } from "@/prisma/db";
 import { TransactionType } from "@/app/generated/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { safeParseJson, isValidTransactionType, isValidCategoryName } from "@/app/lib/validators";
+import { logSuccess, logError } from "@/app/lib/logger";
 
 type RouteParams = {
   id: string;
@@ -139,6 +140,12 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
       data: updateData,
     });
 
+    logSuccess("Category updated successfully", { 
+      categoryId: categoryId, 
+      userId: session.userId,
+      name: category.name,
+      type: category.type
+    });
     return NextResponse.json(category);
   } catch (error) {
     if (error && typeof error === "object" && "code" in error) {
@@ -152,7 +159,7 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
         );
       }
     }
-    console.error("Error updating category:", error);
+    logError("Failed to update category", error, { categoryId, userId: session.userId });
     return internalErrorResponse("Failed to update category");
   }
 };
@@ -188,12 +195,16 @@ const deleteHandler: AuthenticatedHandler<RouteParams> = async (
       },
     });
 
+    logSuccess("Category deleted successfully", { 
+      categoryId: categoryId, 
+      userId: session.userId 
+    });
     return NextResponse.json({ message: "Category deleted successfully" });
   } catch (error) {
     if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
       return notFoundResponse("Category not found");
     }
-    console.error("Error deleting category:", error);
+    logError("Failed to delete category", error, { categoryId, userId: session.userId });
     return internalErrorResponse("Failed to delete category");
   }
 };

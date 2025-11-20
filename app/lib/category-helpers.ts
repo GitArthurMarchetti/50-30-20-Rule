@@ -1,5 +1,6 @@
 import { prisma } from "@/prisma/db";
 import { defaultCategories } from "@/app/api/categories";
+import { logError } from "./logger";
 
 /**
  * Initializes default categories for a user
@@ -34,7 +35,7 @@ export async function initializeDefaultCategories(userId: number): Promise<numbe
         continue;
       }
       // Log other errors but continue creating other categories
-      console.error(`Error creating category ${category.name} for user ${userId}:`, error);
+      logError(`Failed to create category for user`, error, { userId, categoryName: category.name, categoryType: category.type });
     }
   }
 

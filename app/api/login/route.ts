@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { signJwt } from "@/app/lib/jwt";
 import { unauthorizedResponse, internalErrorResponse, badRequestResponse } from "@/app/lib/errors/responses";
 import { safeParseJson, isValidEmail } from "@/app/lib/validators";
+import { logSuccess, logError } from "@/app/lib/logger";
 
 
 export async function POST(req: Request) {
@@ -50,9 +51,11 @@ export async function POST(req: Request) {
       path: "/",
       maxAge: 60 * 60 * 2,
     });
+
+    logSuccess("User logged in successfully", { userId: user.id, email: emailNorm });
     return res;
   } catch (e) {
-    console.error(e);
+    logError("Login failed", e, { email: emailNorm });
     return internalErrorResponse("Internal error");
   }
 }

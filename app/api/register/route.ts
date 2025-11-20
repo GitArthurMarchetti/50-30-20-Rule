@@ -5,6 +5,7 @@ import { Prisma } from "@/app/generated/prisma";
 import { badRequestResponse, conflictResponse, internalErrorResponse } from "@/app/lib/errors/responses";
 import { safeParseJson, isValidEmail } from "@/app/lib/validators";
 import { initializeDefaultCategories } from "@/app/lib/category-helpers";
+import { logSuccess, logError } from "@/app/lib/logger";
 
 export async function POST(req: Request) {
   try {
@@ -64,19 +65,20 @@ export async function POST(req: Request) {
     // Initialize default categories for the new user
     try {
       const categoriesCreated = await initializeDefaultCategories(newUser.id);
-      console.log(`Created ${categoriesCreated} default categories for user ${newUser.id}`);
+      logSuccess(`Default categories initialized for new user`, { userId: newUser.id, categoriesCount: categoriesCreated });
     } catch (error) {
       // Log error but don't fail user registration if categories can't be created
-      console.error("Error creating default categories for new user:", error);
+      logError("Failed to initialize default categories for new user", error, { userId: newUser.id });
     }
 
+    logSuccess("User registered successfully", { userId: newUser.id, email: emailNorm });
     return NextResponse.json({ message: "User created" }, { status: 201 });
   } catch (e: unknown) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return conflictResponse("Email/username already registered");
     }
     const msg = e instanceof Error ? e.message : "Internal error";
-    console.error(msg);
+    logError("User registration failed", e, { email: emailNorm });
     return internalErrorResponse("Internal error");
   }
 }

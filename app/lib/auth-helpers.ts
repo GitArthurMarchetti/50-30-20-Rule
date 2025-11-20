@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser, SessionUser } from "./auth-server";
 import { internalErrorResponse, unauthorizedResponse } from "./errors/responses";
+import { logError } from "./logger";
 
 
 export type RouteContext<TParams> = {
@@ -26,7 +27,7 @@ export function withAuth<TParams extends Record<string, unknown>>(
       return await handler(req, context, session);
       
     } catch (error) {
-      console.error("Erro na rota protegida:", error);
+      logError("Error in protected route", error);
       return internalErrorResponse();
     }
   };

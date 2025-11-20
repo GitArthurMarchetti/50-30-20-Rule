@@ -3,6 +3,7 @@ import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-hel
 import { getOrCreateMonthlySummary } from "@/app/lib/services/summary-service";
 import { NextRequest, NextResponse } from "next/server";
 import { internalErrorResponse } from "@/app/lib/errors/responses";
+import { logError } from "@/app/lib/logger";
 
 const postHandler: AuthenticatedHandler<Record<string, never>> = async (
   request: NextRequest,
@@ -17,7 +18,7 @@ const postHandler: AuthenticatedHandler<Record<string, never>> = async (
       summary,
     });
   } catch (error) {
-    console.error("Error creating/updating monthly summary:", error);
+    logError("Failed to create/update monthly summary", error, { userId: session.userId });
     return internalErrorResponse("Failed to update monthly summary");
   }
 };

@@ -14,6 +14,7 @@ import {
 import { AuthenticatedHandler, withAuth } from "@/app/lib/auth-helpers";
 import { safeParseJson, isValidTransactionType, isValidAmount, parseAndValidateDate, isCategoryTypeCompatible } from "@/app/lib/validators";
 import { TransactionType } from "@/app/generated/prisma";
+import { logSuccess, logError } from "@/app/lib/logger";
 
 type RouteParams = {
   id: string;
@@ -101,12 +102,16 @@ const deleteHandler: AuthenticatedHandler<RouteParams> = async (
       }
     );
 
+    logSuccess("Transaction deleted successfully", { 
+      transactionId: transactionId, 
+      userId: session.userId 
+    });
     return NextResponse.json({ message: "Transaction deleted successfully" });
   } catch (error) {
     if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
       return notFoundResponse("Transaction not found");
     }
-    console.error("Error deleting transaction:", error);
+    logError("Failed to delete transaction", error, { transactionId, userId: session.userId });
     return internalErrorResponse("Failed to delete transaction");
   }
 };
@@ -279,12 +284,18 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
       );
     }
 
+    logSuccess("Transaction updated successfully", { 
+      transactionId: transactionId, 
+      userId: session.userId,
+      type: transactionType,
+      amount: amount
+    });
     return NextResponse.json(updatedTransaction);
   } catch (error) {
     if (error && typeof error === "object" && "code" in error && error.code === "P2025") {
       return notFoundResponse("Transaction not found");
     }
-    console.error("Error updating transaction:", error);
+    logError("Failed to update transaction", error, { transactionId, userId: session.userId });
     return internalErrorResponse("Failed to update transaction");
   }
 };

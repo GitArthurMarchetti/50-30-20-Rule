@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { safeParseJson, isValidTransactionType, isValidAmount, parseAndValidateDate, isCategoryTypeCompatible } from "@/app/lib/validators";
 import { TransactionType } from "@/app/generated/prisma";
 import { Decimal } from "@prisma/client/runtime/library";
+import { logSuccess, logError } from "@/app/lib/logger";
 
 const postHandler: AuthenticatedHandler<Record<string, never>> = async (
   request: NextRequest,
@@ -97,9 +98,15 @@ const postHandler: AuthenticatedHandler<Record<string, never>> = async (
       }
     );
 
+    logSuccess("Transaction created successfully", { 
+      transactionId: newTransaction.id, 
+      userId: session.userId, 
+      type: transactionType,
+      amount: amount 
+    });
     return NextResponse.json(newTransaction, { status: 201 });
   } catch (error) {
-    console.error("Error creating transaction:", error);
+    logError("Failed to create transaction", error, { userId: session.userId });
     return internalErrorResponse("Failed to create transaction");
   }
 };

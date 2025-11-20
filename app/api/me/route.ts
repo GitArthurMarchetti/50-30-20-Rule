@@ -5,6 +5,7 @@ import { prisma } from "@/prisma/db";
 import { SessionUser } from "@/app/lib/auth-server";
 import { AuthenticatedHandler, withAuth } from "@/app/lib/auth-helpers";
 import { notFoundResponse, internalErrorResponse } from "@/app/lib/errors/responses";
+import { logError } from "@/app/lib/logger";
 
 
 const getHandler: AuthenticatedHandler<Record<string, never>> = async (
@@ -31,7 +32,7 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
     return NextResponse.json(user);
 
   } catch (error) {
-    console.error("Error fetching user session data:", error);
+    logError("Failed to fetch user session data", error, { userId: session.userId });
     return internalErrorResponse("Failed to fetch user data");
   }
 };

@@ -5,6 +5,7 @@ import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-hel
 import { badRequestResponse, internalErrorResponse } from "@/app/lib/errors/responses";
 import { NextRequest, NextResponse } from "next/server";
 import { isValidYear } from "@/app/lib/validators";
+import { logError } from "@/app/lib/logger";
 
 const getHandler: AuthenticatedHandler<Record<string, never>> = async (
     request: NextRequest,
@@ -25,7 +26,7 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
 
         return NextResponse.json(summary);
     } catch (error) {
-        console.error("Error fetching annual summary:", error);
+        logError("Failed to fetch annual summary", error, { userId: session.userId, year });
         return internalErrorResponse("Failed to fetch annual summary");
     }
 };

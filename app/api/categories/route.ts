@@ -6,6 +6,7 @@ import { TransactionType } from "@/app/generated/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { safeParseJson, isValidTransactionType, isValidCategoryName } from "@/app/lib/validators";
 import { initializeDefaultCategories } from "@/app/lib/category-helpers";
+import { logWarning, logError, logSuccess } from "@/app/lib/logger";
 
 const getHandler: AuthenticatedHandler<Record<string, never>> = async (
   request: NextRequest,
@@ -25,7 +26,8 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
     try {
       await initializeDefaultCategories(session.userId);
     } catch (error) {
-      console.error("Error auto-initializing default categories:", error);
+      logWarning("Failed to auto-initialize default categories", { userId: session.userId });
+      logError("Error auto-initializing default categories", error, { userId: session.userId });
       // Continue even if initialization fails - we'll return empty array
     }
   }
@@ -85,6 +87,12 @@ const postHandler: AuthenticatedHandler<Record<string, never>> = async (
       },
     });
 
+    logSuccess("Category created successfully", { 
+      categoryId: category.id, 
+      userId: session.userId, 
+      name: categoryName,
+      type: validType 
+    });
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
     if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
@@ -92,7 +100,7 @@ const postHandler: AuthenticatedHandler<Record<string, never>> = async (
         `Category '${categoryName}' already exists for type '${validType}'`
       );
     }
-    console.error("Error creating category:", error);
+    logError("Failed to create category", error, { userId: session.userId, name: categoryName, type: validType });
     return internalErrorResponse("Failed to create category");
   }
 };

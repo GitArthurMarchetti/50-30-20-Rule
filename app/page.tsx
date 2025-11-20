@@ -12,6 +12,7 @@ function DashboardContent() {
 
   const {
     isLoading,
+    isRefreshing,
     error,
     data,
     selectedDate,
@@ -48,8 +49,14 @@ function DashboardContent() {
   }, []);
 
 
-  if (isLoading || isCategoryLoading || !data) {
+  // Só mostra loading geral se for o primeiro carregamento (sem dados ainda)
+  if ((isLoading && !data) || isCategoryLoading) {
     return <p className="text-8xl font-bold text-white  text-center flex items-center justify-center h-full w-full">LOADING...</p>;
+  }
+
+  // Se não tem dados ainda, não renderiza (ainda está carregando)
+  if (!data) {
+    return null;
   }
 
   if (error) {
@@ -67,6 +74,7 @@ function DashboardContent() {
           selectedDate={selectedDate}
           onMonthChange={handleMonthChange}
           financialStatement={data.financialStatement}
+          isRefreshing={isRefreshing}
         />
       }
     >
@@ -84,6 +92,7 @@ function DashboardContent() {
               categoryType={category.type}
               onTransactionAdded={refetchData}
               selectedDate={selectedDate}
+              isRefreshing={isRefreshing}
             >
               {category.items.map((item) => (
                 <FinancialEntryRow
@@ -113,6 +122,7 @@ function DashboardContent() {
                 categoryType={category.type}
                 onTransactionAdded={refetchData}
                 selectedDate={selectedDate}
+                isRefreshing={isRefreshing}
               >
                 {category.items.map((item) => (
                   <FinancialEntryRow

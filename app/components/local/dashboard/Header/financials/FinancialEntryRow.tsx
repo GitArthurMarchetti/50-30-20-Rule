@@ -8,6 +8,7 @@ import React from "react";
 import { useState } from "react";
 import { useDashboard } from "@/app/context/DashboardContex";
 import TransactionEditModal from "../../../modal/TransactionsEdit";
+import FinancialEntryRowSkeleton from "./FinancialEntryRowSkeleton";
 
 interface FinancialEntryRowProps {
   id: number;
@@ -59,7 +60,15 @@ export default function FinancialEntryRow(props: FinancialEntryRowProps) {
   } = props;
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const { refetchData } = useDashboard();
+  const { refetchData, updatingIds } = useDashboard();
+  
+  // Verifica se esta transação está sendo atualizada ou deletada
+  const isUpdating = updatingIds.includes(id);
+  
+  // Se está deletando ou atualizando, mostra skeleton
+  if (isDeleting || isUpdating) {
+    return <FinancialEntryRowSkeleton />;
+  }
 
   // --- INÍCIO DA MUDANÇA ---
   // 3. Procura o nome da categoria no mapa

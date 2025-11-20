@@ -12,6 +12,8 @@ import AddTransactionButton from "../../../modal/TransactionButton";
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { FinancialCategoryCardProps } from "@/app/types/financialsType";
 import { formatCurrency } from "@/app/lib/formatters";
+import FinancialEntryRowSkeleton from "./FinancialEntryRowSkeleton";
+import { useDashboard } from "@/app/context/DashboardContex";
 
 
 const getCategoryColorClass = (category: string) => {
@@ -35,9 +37,14 @@ export default function FinancialCategoryCard({
     children,
     onTransactionAdded,
     selectedDate,
-}: FinancialCategoryCardProps) {
-
+    isRefreshing,
+}: FinancialCategoryCardProps & { isRefreshing?: boolean }) {
+    const { creatingTransaction } = useDashboard();
     const categoryColorClass = getCategoryColorClass(title);
+    
+    // Mostra skeleton se está criando transação ou fazendo refresh
+    // (atualização e deleção são tratadas individualmente no FinancialEntryRow)
+    const showSkeleton = isRefreshing || creatingTransaction;
 
     const actual = parseFloat(actualPercentage);
     const max = parseFloat(maxPercentage);
@@ -101,7 +108,14 @@ export default function FinancialCategoryCard({
             <div className="flex-grow min-h-0">
                 <ScrollArea className="h-full w-full">
                     <div className="p-2">
-                        {children}
+                        {showSkeleton ? (
+                            // Mostrar skeleton para cada item existente ou um número mínimo
+                            Array.from({ length: React.Children.count(children) || 3 }).map((_, i) => (
+                                <FinancialEntryRowSkeleton key={`skeleton-${i}`} />
+                            ))
+                        ) : (
+                            children
+                        )}
                     </div>
                 </ScrollArea>
             </div>

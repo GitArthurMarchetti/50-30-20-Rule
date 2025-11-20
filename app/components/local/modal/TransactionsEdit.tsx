@@ -5,6 +5,7 @@ import { useEffect, useState, FormEvent } from "react";
 import { categoryService, Category } from "@/app/lib/client/category-service";
 import { transactionService } from "@/app/lib/client/transaction-service";
 import { ApiError } from "@/app/lib/client/api-client";
+import { useDashboard } from "@/app/context/DashboardContex";
 import {
   Dialog,
   DialogContent,
@@ -42,7 +43,7 @@ export default function TransactionEditModal({
     onClose,
     onTransactionUpdated,
 }: EditModalProps) {
-
+    const { setUpdatingTransaction } = useDashboard();
     const [formData, setFormData] = useState<TransactionFormData>({ 
         ...transaction,
         categoryId: transaction.categoryId ?? null
@@ -108,6 +109,7 @@ export default function TransactionEditModal({
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setUpdatingTransaction(transaction.id, true);
         setError("");
 
         try {
@@ -115,6 +117,7 @@ export default function TransactionEditModal({
             if (numericAmount < 0) {
                 setError("Value cannot be negative.");
                 setIsLoading(false);
+                setUpdatingTransaction(transaction.id, false);
                 return;
             }
             // Convert categoryId from string (form) to number (API) or null
@@ -128,6 +131,7 @@ export default function TransactionEditModal({
             if (categoryId !== null && (isNaN(categoryId) || categoryId <= 0)) {
                 setError("Invalid category selected");
                 setIsLoading(false);
+                setUpdatingTransaction(transaction.id, false);
                 return;
             }
 
@@ -139,7 +143,7 @@ export default function TransactionEditModal({
                 date: new Date(formData.date + 'T00:00:00'),
             });
 
-            onTransactionUpdated();
+            await onTransactionUpdated();
         } catch (err) {
             const message = err instanceof ApiError
                 ? err.message
@@ -149,6 +153,7 @@ export default function TransactionEditModal({
             setError(message);
         } finally {
             setIsLoading(false);
+            setUpdatingTransaction(transaction.id, false);
         }
     };
 

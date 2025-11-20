@@ -6,6 +6,7 @@ import { TransactionType } from "@/app/generated/prisma";
 import { categoryService, Category } from "@/app/lib/client/category-service";
 import { transactionService } from "@/app/lib/client/transaction-service";
 import { ApiError } from "@/app/lib/client/api-client";
+import { useDashboard } from "@/app/context/DashboardContex";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,7 @@ interface AddTransactionButtonProps {
 }
 
 export default function AddTransactionButton({ categoryType, onTransactionAdded, selectedDate }: AddTransactionButtonProps) {
+  const { setCreatingTransaction } = useDashboard();
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -84,6 +86,7 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
       return;
     }
     setIsLoading(true);
+    setCreatingTransaction(true);
     setError("");
 
     try {
@@ -91,11 +94,13 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
       if (isNaN(numericAmount)) {
         setError("Invalid Value.");
         setIsLoading(false);
+        setCreatingTransaction(false);
         return;
       }
       if (numericAmount < 0) {
         setError("Value cannot be negative.");
         setIsLoading(false);
+        setCreatingTransaction(false);
         return;
       }
       
@@ -108,6 +113,7 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
       if (finalCategoryId !== null && (isNaN(finalCategoryId) || finalCategoryId <= 0)) {
         setError("Invalid category selected");
         setIsLoading(false);
+        setCreatingTransaction(false);
         return;
       }
 
@@ -120,7 +126,7 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
       });
       
       setOpen(false);
-      onTransactionAdded();
+      await onTransactionAdded();
     } catch (err) {
       const message = err instanceof ApiError
         ? err.message
@@ -130,6 +136,7 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
       setError(message);
     } finally {
       setIsLoading(false);
+      setCreatingTransaction(false);
     }
   };
 

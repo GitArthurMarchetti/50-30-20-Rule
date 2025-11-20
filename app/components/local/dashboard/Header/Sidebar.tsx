@@ -1,9 +1,15 @@
 import { SidebarProps } from "@/app/types/dashboardTypes";
 import FinancialStatement from "./financials/FinancialStatmentRow";
+import FinancialStatementSkeleton from "./financials/FinancialStatementSkeleton";
 import MonthSelector from "./MonthSelector";
 
 
-export default function Sidebar({ financialStatement, selectedDate, onMonthChange }: SidebarProps) {
+export default function Sidebar({ 
+    financialStatement, 
+    selectedDate, 
+    onMonthChange,
+    isRefreshing 
+}: SidebarProps & { isRefreshing?: boolean }) {
     return (
         <div className="flex flex-col h-full">
             <MonthSelector
@@ -11,14 +17,18 @@ export default function Sidebar({ financialStatement, selectedDate, onMonthChang
                 onMonthChange={onMonthChange}
             />
 
-            <FinancialStatement
-                totalIncome={financialStatement.revenue}
-                totalNeeds={financialStatement.fixedExpenses}
-                totalWants={financialStatement.variableExpenses}
-                totalReserves={financialStatement.reserves}
-                investments={financialStatement.investments}
-                finalBalance={financialStatement.result}
-            />
+            {isRefreshing ? (
+                <FinancialStatementSkeleton />
+            ) : (
+                <FinancialStatement
+                    totalIncome={financialStatement.revenue}
+                    totalNeeds={financialStatement.fixedExpenses}
+                    totalWants={financialStatement.variableExpenses}
+                    totalReserves={financialStatement.reserves}
+                    investments={financialStatement.investments}
+                    finalBalance={financialStatement.result}
+                />
+            )}
         </div>
     );
 }

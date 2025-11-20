@@ -8,6 +8,8 @@ import { initializeDefaultCategories } from "@/app/lib/category-helpers";
 import { logSuccess, logError } from "@/app/lib/logger";
 
 export async function POST(req: Request) {
+  let emailNorm: string | undefined;
+  
   try {
     const parseResult = await safeParseJson<{ username?: string; email?: string; password?: string }>(req);
     if (!parseResult.success) {
@@ -17,7 +19,7 @@ export async function POST(req: Request) {
     const { username, email, password } = parseResult.data!;
 
     const usernameNorm = String(username ?? "").trim();
-    const emailNorm = String(email ?? "").trim().toLowerCase();
+    emailNorm = String(email ?? "").trim().toLowerCase();
     const pass = String(password ?? "");
 
     if (!username || usernameNorm.length === 0) {
@@ -77,7 +79,6 @@ export async function POST(req: Request) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return conflictResponse("Email/username already registered");
     }
-    const msg = e instanceof Error ? e.message : "Internal error";
     logError("User registration failed", e, { email: emailNorm });
     return internalErrorResponse("Internal error");
   }

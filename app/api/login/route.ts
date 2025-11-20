@@ -8,6 +8,8 @@ import { logSuccess, logError } from "@/app/lib/logger";
 
 
 export async function POST(req: Request) {
+  let emailNorm: string | undefined;
+  
   try {
     const parseResult = await safeParseJson<{ email?: string; password?: string }>(req);
     if (!parseResult.success) {
@@ -20,7 +22,7 @@ export async function POST(req: Request) {
       return badRequestResponse("Email and password are required");
     }
 
-    const emailNorm = String(email).trim().toLowerCase();
+    emailNorm = String(email).trim().toLowerCase();
     const passwordString = String(password);
 
     // SECURITY: Validate email format before querying database

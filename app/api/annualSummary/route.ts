@@ -12,12 +12,11 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
     context: RouteContext<Record<string, never>>,
     session: SessionUser
 ) => {
+    const { searchParams } = new URL(request.url);
+    const yearParam = searchParams.get("year");
+    const year = yearParam ? parseInt(yearParam, 10) : new Date().getFullYear();
+
     try {
-        const { searchParams } = new URL(request.url);
-        const yearParam = searchParams.get("year");
-
-        const year = yearParam ? parseInt(yearParam, 10) : new Date().getFullYear();
-
         if (!isValidYear(year)) {
             return badRequestResponse("Invalid year. Year must be between 1900 and 2100");
         }

@@ -4,8 +4,11 @@ import { useState, useEffect } from "react";
 import DashboardLayout from "./layout/DashboardLayout";
 import Sidebar from "./components/local/dashboard/Header/Sidebar";
 import DashboardHeader from "./components/local/dashboard/Header/DashboardHeader";
+import DashboardSkeleton from "./components/local/dashboard/Header/DashboardSkeleton";
+import MonthSelector from "./components/local/dashboard/Header/MonthSelector";
 import FinancialCategoryCard from "./components/local/dashboard/Header/financials/FinancialCategoryCard";
 import FinancialEntryRow from "./components/local/dashboard/Header/financials/FinancialEntryRow";
+import FinancialStatementSkeleton from "./components/local/dashboard/Header/financials/FinancialStatementSkeleton";
 import { categoryService } from "./lib/client/category-service";
 
 function DashboardContent() {
@@ -49,9 +52,23 @@ function DashboardContent() {
   }, []);
 
 
-  // Só mostra loading geral se for o primeiro carregamento (sem dados ainda)
+  // Se não tem dados ainda, mostra skeleton sutil
   if ((isLoading && !data) || isCategoryLoading) {
-    return <p className="text-8xl font-bold text-white  text-center flex items-center justify-center h-full w-full">LOADING...</p>;
+    return (
+      <DashboardLayout
+        sidebar={
+          <div className="flex flex-col h-full">
+            <MonthSelector
+              selectedDate={selectedDate}
+              onMonthChange={() => {}} // No-op during loading
+            />
+            <FinancialStatementSkeleton />
+          </div>
+        }
+      >
+        <DashboardSkeleton />
+      </DashboardLayout>
+    );
   }
 
   // Se não tem dados ainda, não renderiza (ainda está carregando)
@@ -80,9 +97,9 @@ function DashboardContent() {
     >
       <DashboardHeader
         lastMonthsResult={data.lastMonthsResult}
+        selectedDate={selectedDate}
         isResultIncluded={includeResult}
         onToggleResult={handleToggleResult}
-        selectedDate={selectedDate}
       />
       <section className="h-8/9 w-full mt-auto flex flex-row justify-evenly gap-4">
         {mainCategories.map((category) => (

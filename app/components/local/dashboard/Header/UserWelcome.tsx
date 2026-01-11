@@ -1,11 +1,8 @@
 import { formatCurrency } from "@/app/lib/formatters";
 import { FaUserCircle } from "react-icons/fa";
-import { VscEye, VscEyeClosed } from "react-icons/vsc";
 
 interface UserWelcomeProps {
     lastMonthsResult: number;
-    isResultIncluded: boolean;
-    onToggleResult: () => void;
 }
 
 import {
@@ -17,8 +14,6 @@ import { UserSheet } from "../UserSheetContent";
 
 export default function UserWelcome({
     lastMonthsResult,
-    isResultIncluded,
-    onToggleResult,
 }: UserWelcomeProps) {
 
     const formattedResult = formatCurrency(lastMonthsResult)
@@ -37,17 +32,11 @@ export default function UserWelcome({
                 </SheetContent>
             </Sheet>
 
-            <div className="card-transaction ml-5 flex items-center" onClick={onToggleResult}>
-                <button
-                    className="mr-2 focus:outline-none"
-                    aria-label="Enable/disable previous month's result"
-                >
-                    {isResultIncluded ? <VscEye className="h-5 w-5" /> : <VscEyeClosed className="h-5 w-5" />}
-                </button>
+            <div className="card-transaction ml-5 flex items-center">
                 <p className="mr-2">
                     Last month&apos;s result:
                 </p>
-                <p className={`font-bold transition-colors ${isResultIncluded ? 'text-green-300' : 'text-gray-500 line-through'}`}>
+                <p className="font-bold text-green-300">
                     {formattedResult}
                 </p>
             </div>

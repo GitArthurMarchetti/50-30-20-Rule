@@ -144,13 +144,13 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
     }),
   ]);
 
-  // Use aggregated results instead of filtering/reducing in JavaScript
-  let baseIncome = new Decimal(incomeResult._sum.amount ?? 0);
-  // Income apenas do mês atual (para cálculo de reserves e investments - não deve incluir lastMonthsResult)
-  const currentMonthIncome = new Decimal(incomeResult._sum.amount ?? 0);
+  // Renda do mês atual (apenas transações INCOME do mês - base para cálculo de metas)
+  const monthlyIncome = new Decimal(incomeResult._sum.amount ?? 0);
   
+  // Total disponível (monthlyIncome + saldo anterior, se incluído)
+  let totalAvailable = monthlyIncome;
   if (includeResult) {
-    baseIncome = baseIncome.add(lastMonthsResultValue);
+    totalAvailable = totalAvailable.add(lastMonthsResultValue);
   }
 
   const needsExpenses = new Decimal(needsResult._sum.amount ?? 0);
@@ -158,50 +158,55 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
   const reservesTotal = new Decimal(reservesResult._sum.amount ?? 0);
   const investmentsTotal = new Decimal(investmentsResult._sum.amount ?? 0);
   
-  const result = baseIncome.sub(needsExpenses).sub(wantsExpenses).sub(reservesTotal).sub(investmentsTotal);
+  const result = totalAvailable.sub(needsExpenses).sub(wantsExpenses).sub(reservesTotal).sub(investmentsTotal);
 
   const responseData: DashboardData = {
     cards: {
-      income: calculateCategoryData(
-        TransactionType.INCOME,
-        100,
-        currentMonthTransactions,
-        baseIncome
-      ),
+      income: {
+        ...calculateCategoryData(
+          TransactionType.INCOME,
+          100,
+          currentMonthTransactions,
+          monthlyIncome
+        ),
+        monthlyIncome: monthlyIncome.toNumber(),
+        previousBalance: lastMonthsResultValue.toNumber(),
+        totalAvailable: totalAvailable.toNumber(),
+      },
       needs: calculateCategoryData(
         TransactionType.NEEDS,
         50,
         currentMonthTransactions,
-        baseIncome
+        monthlyIncome  // Usa monthlyIncome para calcular as metas (50%)
       ),
       wants: calculateCategoryData(
         TransactionType.WANTS,
         30,
         currentMonthTransactions,
-        baseIncome
+        monthlyIncome  // Usa monthlyIncome para calcular as metas (30%)
       ),
       reserves: calculateCategoryData(
         TransactionType.RESERVES,
         10,
         currentMonthTransactions,
-        currentMonthIncome  // Usa apenas o income do mês atual, não inclui lastMonthsResult
+        monthlyIncome  // Usa monthlyIncome para calcular as metas (10%)
       ),
       investments: calculateCategoryData(
         TransactionType.INVESTMENTS,
         10,
         currentMonthTransactions,
-        currentMonthIncome  // Usa apenas o income do mês atual, não inclui lastMonthsResult
+        monthlyIncome  // Usa monthlyIncome para calcular as metas (10%)
       ),
     },
 
     financialStatement: {
-      revenue: baseIncome.toNumber(), 
+      revenue: totalAvailable.toNumber(), 
       fixedExpenses: needsExpenses.toNumber(), 
       variableExpenses: wantsExpenses.toNumber(), 
       reserves: reservesTotal.toNumber(), 
       investments: investmentsTotal.toNumber(), 
       result: result.toNumber(),
-      currentMonthIncome: currentMonthIncome.toNumber(),
+      currentMonthIncome: monthlyIncome.toNumber(),
     },
     lastMonthsResult: lastMonthsResultValue.toNumber(),
   };

@@ -17,6 +17,10 @@ export interface FinancialCategory {
   actualAmount: string;
   maxAmount: string;
   items: TransactionItem[];
+  // Campos adicionais apenas para Income card
+  monthlyIncome?: number;
+  previousBalance?: number;
+  totalAvailable?: number;
 }
 
 export interface DashboardData {

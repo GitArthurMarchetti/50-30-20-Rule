@@ -38,6 +38,7 @@ export default function FinancialCategoryCard({
     onTransactionAdded,
     selectedDate,
     isRefreshing,
+    monthlyIncome,
 }: FinancialCategoryCardProps & { isRefreshing?: boolean }) {
     const { creatingTransaction } = useDashboard();
     const categoryColorClass = getCategoryColorClass(title);
@@ -122,8 +123,17 @@ export default function FinancialCategoryCard({
 
             {title === "Income" ? (
                 <div className="flex flex-col flex-shrink-0 text-white p-2 border-t">
-                    <p className="text-center text-sm">{maxPercentage}</p>
-                    <p className="text-center font-bold">{actualAmount}</p>
+                    {monthlyIncome !== undefined ? (
+                        <>
+                            <p className="text-center text-xs text-gray-400">Monthly Income (Base for Goals)</p>
+                            <p className="text-center font-bold">{formatCurrency(monthlyIncome)}</p>
+                        </>
+                    ) : (
+                        <>
+                            <p className="text-center text-sm">{maxPercentage}</p>
+                            <p className="text-center font-bold">{actualAmount}</p>
+                        </>
+                    )}
                 </div>
             ) : (
                 <div className={`border-t flex flex-col flex-shrink-0 ${situacion} transition-colors duration-300`}>

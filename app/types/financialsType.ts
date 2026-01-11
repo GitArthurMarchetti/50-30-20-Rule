@@ -10,6 +10,10 @@ export interface FinancialCategoryCardProps {
     categoryType: TransactionType;
     onTransactionAdded: () => void;
     selectedDate: Date; // 1. Adicionamos a prop que estava faltando
+    // Campos adicionais apenas para Income card
+    monthlyIncome?: number;
+    previousBalance?: number;
+    totalAvailable?: number;
 }
 
 export interface FinancialStatementRowProps {

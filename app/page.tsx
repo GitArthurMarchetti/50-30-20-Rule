@@ -19,10 +19,9 @@ function DashboardContent() {
     error,
     data,
     selectedDate,
-    includeResult,
     deletingIds,
     handleMonthChange,
-    handleToggleResult,
+    handleYearChange,
     refetchData,
     handleDeleteTransaction
   } = useDashboard();
@@ -61,6 +60,7 @@ function DashboardContent() {
             <MonthSelector
               selectedDate={selectedDate}
               onMonthChange={() => {}} // No-op during loading
+              onYearChange={() => {}} // No-op during loading
             />
             <FinancialStatementSkeleton />
           </div>
@@ -90,6 +90,7 @@ function DashboardContent() {
         <Sidebar
           selectedDate={selectedDate}
           onMonthChange={handleMonthChange}
+          onYearChange={handleYearChange}
           financialStatement={data.financialStatement}
           isRefreshing={isRefreshing}
         />
@@ -98,8 +99,6 @@ function DashboardContent() {
       <DashboardHeader
         lastMonthsResult={data.lastMonthsResult}
         selectedDate={selectedDate}
-        isResultIncluded={includeResult}
-        onToggleResult={handleToggleResult}
       />
       <section className="h-8/9 w-full mt-auto flex flex-row justify-evenly gap-4">
         {mainCategories.map((category) => (

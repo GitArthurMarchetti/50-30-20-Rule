@@ -12,7 +12,7 @@ export default function DashboardLayout({ children, sidebar }: DashboardLayoutPr
                 {children}
             </main>
 
-            <aside className="h-full w-2/12 secondary-background px-6 pb-10">
+            <aside className="h-full w-2/12 secondary-background px-3 pb-10">
                 {sidebar}
             </aside>
         </div>

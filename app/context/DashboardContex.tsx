@@ -18,6 +18,7 @@ interface DashboardContextType {
   updatingIds: number[];
   creatingTransaction: boolean;
   handleMonthChange: (monthIndex: number) => void;
+  handleYearChange: (year: number) => void;
   handleToggleResult: () => void;
   refetchData: () => Promise<void>;
   handleDeleteTransaction: (id: number) => Promise<void>;
@@ -84,6 +85,14 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const handleYearChange = (year: number) => {
+    setSelectedDate(currentDate => {
+      const newDate = new Date(currentDate);
+      newDate.setFullYear(year);
+      return newDate;
+    });
+  };
+
   const handleToggleResult = () => {
     setIncludeResult(prevState => !prevState);
   };
@@ -130,6 +139,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     updatingIds,
     creatingTransaction,
     handleMonthChange,
+    handleYearChange,
     handleToggleResult,
     refetchData,
     handleDeleteTransaction,

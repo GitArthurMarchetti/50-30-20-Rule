@@ -93,7 +93,7 @@ export default function FinancialStatement({
   };
 
   return (
-    <section className="h-4/9 w-full mb-auto flex flex-col gap-4 mt-5">
+    <section className="h-5/9 w-full mb-auto flex flex-col gap-4 ">
       <div className="h-1/6 flex justify-center">
         <h1 className="title m-auto text-center">Financial Statement</h1>
       </div>

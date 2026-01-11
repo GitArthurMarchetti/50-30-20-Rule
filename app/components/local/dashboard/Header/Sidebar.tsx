@@ -8,6 +8,7 @@ export default function Sidebar({
     financialStatement, 
     selectedDate, 
     onMonthChange,
+    onYearChange,
     isRefreshing 
 }: SidebarProps & { isRefreshing?: boolean }) {
     return (
@@ -15,6 +16,7 @@ export default function Sidebar({
             <MonthSelector
                 selectedDate={selectedDate}
                 onMonthChange={onMonthChange}
+                onYearChange={onYearChange}
             />
 
             {isRefreshing ? (

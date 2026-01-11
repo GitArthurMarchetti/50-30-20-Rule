@@ -200,7 +200,8 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
       variableExpenses: wantsExpenses.toNumber(), 
       reserves: reservesTotal.toNumber(), 
       investments: investmentsTotal.toNumber(), 
-      result: result.toNumber(), 
+      result: result.toNumber(),
+      currentMonthIncome: currentMonthIncome.toNumber(),
     },
     lastMonthsResult: lastMonthsResultValue.toNumber(),
   };

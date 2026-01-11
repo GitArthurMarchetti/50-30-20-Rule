@@ -33,7 +33,8 @@ export interface DashboardData {
     variableExpenses: number;
     reserves: number;
     result: number;
-    investments: number; 
+    investments: number;
+    currentMonthIncome: number;
   };
   lastMonthsResult: number;
 }
@@ -47,9 +48,11 @@ export interface SidebarProps {
     reserves: number;
     investments: number; 
     result: number;
+    currentMonthIncome: number;
   };
   selectedDate: Date;
   onMonthChange: (monthIndex: number) => void;
+  onYearChange: (year: number) => void;
 }
 
 export { TransactionType };

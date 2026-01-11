@@ -96,24 +96,24 @@ export default function FinancialEntryRow(props: FinancialEntryRowProps) {
     <>
       <div
         onClick={() => setIsEditModalOpen(true)}
-        className={`group flex justify-between items-center p-2 mb-2 text-sm card-transaction rounded transition-opacity ${deletingClasses} cursor-pointer`}
+        className={`group flex justify-between items-start p-2 mb-2 text-sm  card-transaction rounded transition-opacity ${deletingClasses} cursor-pointer min-w-0`}
       >
-        <div className="h-full flex flex-col">
-          <span className="secondary-text truncate">{label}</span>
+        <div className="flex-1 min-w-0 flex flex-col pr-2">
+          <span className="secondary-text line-clamp-2 break-words">{label}</span>
           
-          <span className="secondary-text truncate text-xs"> 
-            {categoryName || 'Sem Categoria'}
+          <span className="secondary-text truncate text-xs mt-1"> 
+            {categoryName || 'No Category'}
           </span>
 
         </div>
-        <div className="flex items-center gap-2">
-          <span className={`font-medium ${amountColorClass}`}>
+        <div className="flex items-center gap-2 flex-shrink-0 self-center">
+          <span className={`font-medium ${amountColorClass} whitespace-nowrap`}>
             {formattedAmount}
           </span>
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 z-10"
+            className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 z-10 flex-shrink-0"
             aria-label="Apagar transação"
           >
             <Trash2 size={14} />

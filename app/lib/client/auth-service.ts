@@ -16,6 +16,22 @@ export interface LoginResponse {
 }
 
 /**
+ * Register request payload
+ */
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+/**
+ * Register response
+ */
+export interface RegisterResponse {
+  message: string;
+}
+
+/**
  * Auth Service - handles authentication-related API calls
  * Follows Single Responsibility Principle
  */
@@ -29,6 +45,19 @@ class AuthService extends ApiClient {
     return this.post<LoginResponse>('/api/login', {
       email: credentials.email.trim().toLowerCase(),
       password: credentials.password,
+    });
+  }
+
+  /**
+   * Registers a new user
+   * @param data - User registration data (username, email, and password)
+   * @returns Promise with register response
+   */
+  async register(data: RegisterRequest): Promise<RegisterResponse> {
+    return this.post<RegisterResponse>('/api/register', {
+      username: data.username.trim(),
+      email: data.email.trim().toLowerCase(),
+      password: data.password,
     });
   }
 

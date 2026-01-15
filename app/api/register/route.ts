@@ -2,15 +2,29 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/db";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@/app/generated/prisma";
-import { badRequestResponse, conflictResponse, internalErrorResponse } from "@/app/lib/errors/responses";
-import { safeParseJson, isValidEmail } from "@/app/lib/validators";
+import { badRequestResponse, conflictResponse, internalErrorResponse, tooManyRequestsResponse } from "@/app/lib/errors/responses";
+import { safeParseJson, isValidEmail, sanitizeUsername, validatePasswordStrength } from "@/app/lib/validators";
 import { initializeDefaultCategories } from "@/app/lib/category-helpers";
 import { logSuccess, logError } from "@/app/lib/logger";
+import { checkRateLimit, getClientIdentifier } from "@/app/lib/rate-limiter";
 
 export async function POST(req: Request) {
   let emailNorm: string | undefined;
   
   try {
+    // Rate limiting - 3 registrations per 15 minutes per IP
+    const clientId = getClientIdentifier(req);
+    const rateLimit = checkRateLimit(`register:${clientId}`, {
+      maxRequests: 3,
+      windowMs: 15 * 60 * 1000, // 15 minutes
+    });
+
+    if (!rateLimit.allowed) {
+      return tooManyRequestsResponse(
+        `Too many registration attempts. Please try again after ${Math.ceil((rateLimit.resetTime - Date.now()) / 60000)} minutes.`
+      );
+    }
+
     const parseResult = await safeParseJson<{ username?: string; email?: string; password?: string }>(req);
     if (!parseResult.success) {
       return badRequestResponse(parseResult.error || "Invalid request body");
@@ -18,7 +32,8 @@ export async function POST(req: Request) {
 
     const { username, email, password } = parseResult.data!;
 
-    const usernameNorm = String(username ?? "").trim();
+    // Sanitize inputs
+    const usernameNorm = sanitizeUsername(String(username ?? "").trim());
     emailNorm = String(email ?? "").trim().toLowerCase();
     const pass = String(password ?? "");
 
@@ -44,6 +59,14 @@ export async function POST(req: Request) {
 
     if (pass.length > 128) {
       return badRequestResponse("Password cannot exceed 128 characters");
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(pass);
+    if (!passwordValidation.valid) {
+      return badRequestResponse(
+        `Password is too weak. ${passwordValidation.feedback.join(". ")}`
+      );
     }
 
     const exists = await prisma.user.findFirst({

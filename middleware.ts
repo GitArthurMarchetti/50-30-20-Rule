@@ -8,6 +8,7 @@ import { verifyJwt } from "./app/lib/jwt";
 function isPublicPath(pathname: string) {
   return (
     pathname === "/login" ||
+    pathname === "/register" ||
     pathname === "/api/login" ||
     pathname === "/api/register" ||   
     pathname.startsWith("/_next") ||

@@ -1,11 +1,12 @@
 import { TransactionType } from "@/app/generated/prisma";
+import { EMAIL_REGEX, PASSWORD_PATTERNS, COMMON_PASSWORD_PATTERNS, VALIDATION_LIMITS } from "./validation-constants";
 
 /**
  * Validates email format
+ * Uses pre-compiled regex for better performance
  */
 export function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  return EMAIL_REGEX.test(email);
 }
 
 /**
@@ -108,7 +109,7 @@ export async function safeParseJson<T = unknown>(request: Request): Promise<{ su
     }
     const data = JSON.parse(text) as T;
     return { success: true, data };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Invalid JSON format" };
   }
 }
@@ -118,6 +119,94 @@ export async function safeParseJson<T = unknown>(request: Request): Promise<{ su
  */
 export function isCategoryTypeCompatible(categoryType: TransactionType, transactionType: TransactionType): boolean {
   return categoryType === transactionType;
+}
+
+/**
+ * Validates password strength
+ * Returns validation result with strength score and feedback
+ * Uses pre-compiled regex patterns for better performance
+ */
+export function validatePasswordStrength(password: string): {
+  valid: boolean;
+  score: number; // 0-4 (0 = weak, 4 = very strong)
+  feedback: string[];
+} {
+  const feedback: string[] = [];
+  let score = 0;
+
+  if (password.length < VALIDATION_LIMITS.password.min) {
+    feedback.push(`Password must be at least ${VALIDATION_LIMITS.password.min} characters long`);
+    return { valid: false, score: 0, feedback };
+  }
+
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+
+  // Check for lowercase letters (using pre-compiled pattern)
+  if (PASSWORD_PATTERNS.lowercase.test(password)) {
+    score++;
+  } else {
+    feedback.push("Add lowercase letters");
+  }
+
+  // Check for uppercase letters (using pre-compiled pattern)
+  if (PASSWORD_PATTERNS.uppercase.test(password)) {
+    score++;
+  } else {
+    feedback.push("Add uppercase letters");
+  }
+
+  // Check for numbers (using pre-compiled pattern)
+  if (PASSWORD_PATTERNS.number.test(password)) {
+    score++;
+  } else {
+    feedback.push("Add numbers");
+  }
+
+  // Check for special characters (using pre-compiled pattern)
+  if (PASSWORD_PATTERNS.special.test(password)) {
+    score++;
+  } else {
+    feedback.push("Add special characters");
+  }
+
+  // Check for common patterns (using pre-compiled patterns)
+  if (COMMON_PASSWORD_PATTERNS.some(pattern => pattern.test(password))) {
+    feedback.push("Avoid common password patterns");
+    score = Math.max(0, score - 1);
+  }
+
+  // Minimum score of 3 for valid password
+  const valid = score >= 3;
+
+  if (!valid && feedback.length === 0) {
+    feedback.push("Password is too weak");
+  }
+
+  return { valid, score: Math.min(4, score), feedback };
+}
+
+/**
+ * Sanitizes string input to prevent XSS
+ */
+export function sanitizeString(input: string): string {
+  return input
+    .trim()
+    .replace(/[<>]/g, "") // Remove potential HTML tags
+    .slice(0, 1000); // Limit length
+}
+
+/**
+ * Sanitizes username
+ * Uses validation constants for consistency
+ */
+export function sanitizeUsername(username: string): string {
+  // Allow alphanumeric, underscore, hyphen, and spaces (but trim spaces)
+  return username
+    .trim()
+    .replace(/[^a-zA-Z0-9_\-\s]/g, "") // Remove special characters except allowed ones
+    .replace(/\s+/g, " ") // Normalize spaces
+    .slice(0, VALIDATION_LIMITS.username.max); // Limit length
 }
 
 

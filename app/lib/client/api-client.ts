@@ -21,22 +21,31 @@ class ApiClient {
    * Base request method that handles all HTTP requests
    * @param endpoint - API endpoint path
    * @param options - Fetch options
+   * @param timeout - Request timeout in milliseconds (default: 30 seconds)
    * @returns Promise with typed response
    */
   protected async request<T>(
     endpoint: string,
-    options?: RequestInit
+    options?: RequestInit,
+    timeout: number = 30000
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
     try {
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+
       const response = await fetch(url, {
         ...options,
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
           ...options?.headers,
         },
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
@@ -50,6 +59,9 @@ class ApiClient {
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
+      }
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new ApiError('Request timeout. Please try again.', 408);
       }
       throw new ApiError(
         error instanceof Error ? error.message : 'Network error occurred',

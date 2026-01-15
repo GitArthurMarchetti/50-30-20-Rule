@@ -2,15 +2,29 @@ import { prisma } from "@/prisma/db";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { signJwt } from "@/app/lib/jwt";
-import { unauthorizedResponse, internalErrorResponse, badRequestResponse } from "@/app/lib/errors/responses";
+import { unauthorizedResponse, internalErrorResponse, badRequestResponse, tooManyRequestsResponse } from "@/app/lib/errors/responses";
 import { safeParseJson, isValidEmail } from "@/app/lib/validators";
 import { logSuccess, logError } from "@/app/lib/logger";
+import { checkRateLimit, getClientIdentifier } from "@/app/lib/rate-limiter";
 
 
 export async function POST(req: Request) {
   let emailNorm: string | undefined;
   
   try {
+    // Rate limiting - 5 attempts per 15 minutes per IP
+    const clientId = getClientIdentifier(req);
+    const rateLimit = checkRateLimit(`login:${clientId}`, {
+      maxRequests: 5,
+      windowMs: 15 * 60 * 1000, // 15 minutes
+    });
+
+    if (!rateLimit.allowed) {
+      return tooManyRequestsResponse(
+        `Too many login attempts. Please try again after ${Math.ceil((rateLimit.resetTime - Date.now()) / 60000)} minutes.`
+      );
+    }
+
     const parseResult = await safeParseJson<{ email?: string; password?: string }>(req);
     if (!parseResult.success) {
       return badRequestResponse(parseResult.error || "Invalid request body");
@@ -31,8 +45,22 @@ export async function POST(req: Request) {
       return badRequestResponse("Invalid email format");
     }
 
+    // Additional rate limiting per email (brute force protection)
+    const emailRateLimit = checkRateLimit(`login:email:${emailNorm}`, {
+      maxRequests: 3,
+      windowMs: 15 * 60 * 1000, // 15 minutes
+    });
+
+    if (!emailRateLimit.allowed) {
+      return tooManyRequestsResponse(
+        `Too many login attempts for this email. Please try again after ${Math.ceil((emailRateLimit.resetTime - Date.now()) / 60000)} minutes.`
+      );
+    }
+
     const user = await prisma.user.findUnique({ where: { email: emailNorm } });
     if (!user) {
+      // Use same timing for invalid credentials to prevent user enumeration
+      await bcrypt.compare(passwordString, "$2a$10$dummyhashfordummycomparison"); // Dummy comparison
       return unauthorizedResponse("Invalid credentials");
     }
 

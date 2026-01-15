@@ -54,6 +54,14 @@ export function unprocessableEntityResponse(message: string = "Unprocessable Ent
     );
 }
 
+/** Resposta de erro 429 - Muitas Requisições (Rate Limit) */
+export function tooManyRequestsResponse(message: string = "Too Many Requests") {
+    return NextResponse.json(
+        { message },
+        { status: 429 }
+    );
+}
+
 /** Resposta de erro 500 - Erro Interno do Servidor */
 export function internalErrorResponse(message: string = "Internal Server Error") {
     return NextResponse.json(

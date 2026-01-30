@@ -82,6 +82,8 @@ This is a [Next.js](https://nextjs.org) project for managing personal finances u
 - `npm run clean:all` - Clean build cache and generated Prisma client
 - `npm run check:env` - Check environment variables
 - `npm run check:health` - Check database health and connectivity
+- `npm run check:security` - Run security checks and validations
+- `npm run generate:jwt-secret` - Generate a secure JWT secret
 
 ## 📁 Project Structure
 
@@ -144,6 +146,35 @@ Before deploying:
 1. Set up environment variables in your hosting platform
 2. Run `npm run build` to verify the build works
 3. Ensure your database is accessible from the production environment
+
+## 🔒 Security
+
+This project implements multiple security measures to protect against common vulnerabilities:
+
+- **Authentication**: JWT-based authentication with secure cookie storage
+- **CSRF Protection**: Double Submit Cookie pattern for CSRF protection
+- **Rate Limiting**: Protection against brute force attacks
+- **Input Validation**: Comprehensive validation and sanitization
+- **Security Headers**: HTTP security headers (CSP, HSTS, X-Frame-Options, etc.)
+- **CORS**: Explicit CORS configuration
+- **XSS Protection**: Input sanitization to prevent XSS attacks
+
+### Security Checklist
+
+Before deploying to production:
+
+```bash
+# Run security checks
+npm run check:security
+
+# Verify environment variables
+npm run check:env
+
+# Generate secure JWT secret (if needed)
+npm run generate:jwt-secret
+```
+
+For detailed security documentation, see [SECURITY.md](./SECURITY.md).
 
 ## 📖 Scripts Documentation
 

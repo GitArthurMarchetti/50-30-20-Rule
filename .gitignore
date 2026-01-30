@@ -43,3 +43,6 @@ next-env.d.ts
 /lib/generated/prisma
 
 /app/generated/prisma
+
+# temporary/debug files
+nada.js

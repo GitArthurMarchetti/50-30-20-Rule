@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, useCallback, memo } from "react";
 import {
     Select,
     SelectContent,
@@ -7,7 +8,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import YearSelector from "./YearSelector";
+import dynamic from "next/dynamic";
+
+// OTIMIZAÇÃO: Lazy load YearSelector
+const YearSelector = dynamic(() => import("./YearSelector"), {
+    ssr: true,
+});
 
 interface MonthSelectorProps {
     selectedDate: Date;
@@ -15,18 +21,21 @@ interface MonthSelectorProps {
     onYearChange: (year: number) => void;
 }
 
-export default function MonthSelector({ selectedDate, onMonthChange, onYearChange }: MonthSelectorProps) {
-    const months = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    ];
+// OTIMIZAÇÃO: Mover array para fora do componente (evita recriação)
+const MONTHS = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+] as const;
 
-    const handleMonthChange = (monthIndexAsString: string) => {
+// OTIMIZAÇÃO: Memoizar componente
+const MonthSelector = memo(function MonthSelector({ selectedDate, onMonthChange, onYearChange }: MonthSelectorProps) {
+    // OTIMIZAÇÃO: Memoizar valores computados
+    const handleMonthChange = useCallback((monthIndexAsString: string) => {
         const monthIndex = parseInt(monthIndexAsString, 10);
         onMonthChange(monthIndex);
-    };
+    }, [onMonthChange]);
 
-    const currentMonthValue = String(selectedDate.getMonth());
+    const currentMonthValue = useMemo(() => String(selectedDate.getMonth()), [selectedDate]);
 
     return (
         <header className="flex h-20 w-auto items-center justify-end p-4 gap-2">
@@ -39,7 +48,7 @@ export default function MonthSelector({ selectedDate, onMonthChange, onYearChang
                     <SelectValue placeholder="Select a month" />
                 </SelectTrigger>
                 <SelectContent >
-                    {months.map((month, index) => (
+                    {MONTHS.map((month, index) => (
                         <SelectItem
                             key={month}
                             value={String(index)}
@@ -51,4 +60,8 @@ export default function MonthSelector({ selectedDate, onMonthChange, onYearChang
             </Select>
         </header>
     );
-}
+});
+
+MonthSelector.displayName = 'MonthSelector';
+
+export default MonthSelector;

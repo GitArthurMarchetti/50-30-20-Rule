@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback, memo } from "react";
 import { MoreHorizontal } from "lucide-react";
 import {
     DropdownMenu,
@@ -16,18 +16,21 @@ import FinancialEntryRowSkeleton from "./FinancialEntryRowSkeleton";
 import { useDashboard } from "@/app/context/DashboardContex";
 
 
-const getCategoryColorClass = (category: string) => {
-    switch (category) {
-        case "Income": return "title-income";
-        case "Needs": return "title-needs";
-        case "Wants": return "title-wants";
-        case "Reserves":
-        case "Investments": return "title-reserves";
-        default: return "title-reserves";
-    }
+// OTIMIZAÇÃO: Usar Map para O(1) lookup
+const CATEGORY_COLOR_MAP: Record<string, string> = {
+    "Income": "title-income",
+    "Needs": "title-needs",
+    "Wants": "title-wants",
+    "Reserves": "title-reserves",
+    "Investments": "title-reserves",
 };
 
-export default function FinancialCategoryCard({
+const getCategoryColorClass = (category: string): string => {
+    return CATEGORY_COLOR_MAP[category] || "title-reserves";
+};
+
+// OTIMIZAÇÃO: Memoizar componente
+const FinancialCategoryCard = memo(function FinancialCategoryCard({
     title,
     categoryType,
     maxPercentage,
@@ -41,33 +44,49 @@ export default function FinancialCategoryCard({
     monthlyIncome,
 }: FinancialCategoryCardProps & { isRefreshing?: boolean }) {
     const { creatingTransaction } = useDashboard();
-    const categoryColorClass = getCategoryColorClass(title);
     
-    // Mostra skeleton se está criando transação ou fazendo refresh
-    // (atualização e deleção são tratadas individualmente no FinancialEntryRow)
-    const showSkeleton = isRefreshing || creatingTransaction;
+    // OTIMIZAÇÃO: Memoizar cálculos
+    const actual = useMemo(() => parseFloat(actualPercentage), [actualPercentage]);
+    const max = useMemo(() => parseFloat(maxPercentage), [maxPercentage]);
 
-    const actual = parseFloat(actualPercentage);
-    const max = parseFloat(maxPercentage);
-
-    const situacion = actual > max
-        ? "text-expense bg-opacity-30 font-bold"
-        : actual === max
-            ? "text-saving bg-opacity-30 font-bold"
-            : "bg-transparent text-white";
+    const situacion = useMemo(() => {
+        if (actual > max) return "text-expense bg-opacity-30 font-bold";
+        if (actual === max) return "text-saving bg-opacity-30 font-bold";
+        return "bg-transparent text-white";
+    }, [actual, max]);
 
     const [showAvailable, setShowAvailable] = useState(false);
-    // Shadcn dropdown handles its own open/close
 
-    const parseCurrencyToNumber = (value: string) => {
+    // OTIMIZAÇÃO: Memoizar função de parse
+    const parseCurrencyToNumber = useCallback((value: string): number => {
         if (!value) return 0;
         const numeric = Number(value.replace(/[^0-9.-]/g, ""));
         return isNaN(numeric) ? 0 : numeric;
-    };
+    }, []);
 
-    const remainingPercentage = Math.max(0, (isNaN(max) ? 0 : max) - (isNaN(actual) ? 0 : actual));
-    const remainingAmountNumber = Math.max(0, parseCurrencyToNumber(maxAmount) - parseCurrencyToNumber(actualAmount));
-    const remainingAmountFormatted = formatCurrency(remainingAmountNumber);
+    // OTIMIZAÇÃO: Memoizar cálculos de remaining
+    const remainingPercentage = useMemo(() => 
+        Math.max(0, (isNaN(max) ? 0 : max) - (isNaN(actual) ? 0 : actual)),
+        [max, actual]
+    );
+
+    const remainingAmountNumber = useMemo(() => {
+        const maxNum = parseCurrencyToNumber(maxAmount);
+        const actualNum = parseCurrencyToNumber(actualAmount);
+        return Math.max(0, maxNum - actualNum);
+    }, [maxAmount, actualAmount, parseCurrencyToNumber]);
+
+    const remainingAmountFormatted = useMemo(
+        () => formatCurrency(remainingAmountNumber),
+        [remainingAmountNumber]
+    );
+
+    const categoryColorClass = useMemo(() => getCategoryColorClass(title), [title]);
+    const showSkeleton = useMemo(() => isRefreshing || creatingTransaction, [isRefreshing, creatingTransaction]);
+
+    const toggleShowAvailable = useCallback(() => {
+        setShowAvailable(v => !v);
+    }, []);
 
 
     return (
@@ -87,7 +106,7 @@ export default function FinancialCategoryCard({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" side="bottom" className="min-w-[180px]">
                                 <DropdownMenuItem
-                                    onClick={() => setShowAvailable((v) => !v)}
+                                    onClick={toggleShowAvailable}
                                     className="text-xs"
                                 >
                                     {showAvailable ? "Show summary" : "Show available to spend"}
@@ -161,4 +180,8 @@ export default function FinancialCategoryCard({
             )}
         </div>
     );
-}
+});
+
+FinancialCategoryCard.displayName = 'FinancialCategoryCard';
+
+export default FinancialCategoryCard;

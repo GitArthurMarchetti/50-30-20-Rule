@@ -4,11 +4,16 @@
 import { TransactionType } from "@/app/generated/prisma";
 import { formatCurrency } from "@/app/lib/formatters";
 import { Trash2 } from "lucide-react";
-import React from "react";
-import { useState } from "react";
+import React, { useState, useMemo, useCallback, memo } from "react";
 import { useDashboard } from "@/app/context/DashboardContex";
-import TransactionEditModal from "../../../modal/TransactionsEdit";
+import dynamic from "next/dynamic";
 import FinancialEntryRowSkeleton from "./FinancialEntryRowSkeleton";
+
+// OTIMIZAÇÃO: Lazy load modal pesado
+const TransactionEditModal = dynamic(
+  () => import("../../../modal/TransactionsEdit"),
+  { ssr: false }
+);
 
 interface FinancialEntryRowProps {
   id: number;
@@ -26,22 +31,21 @@ interface FinancialEntryRowProps {
   // --- FIM DA MUDANÇA ---
 }
 
-const getAmountColorClass = (category: string) => {
-  switch (category) {
-    case "Income":
-      return "text-income";
-    case "Needs":
-    case "Wants":
-      return "text-expense";
-    case "Reserves":
-    case "Investments":
-      return "text-saving";
-    default:
-      return "text-gray-200";
-  }
+// OTIMIZAÇÃO: Mover função para fora do componente e usar Map para O(1) lookup
+const COLOR_MAP: Record<string, string> = {
+  "Income": "text-income",
+  "Needs": "text-expense",
+  "Wants": "text-expense",
+  "Reserves": "text-saving",
+  "Investments": "text-saving",
 };
 
-export default function FinancialEntryRow(props: FinancialEntryRowProps) {
+const getAmountColorClass = (category: string): string => {
+  return COLOR_MAP[category] || "text-gray-200";
+};
+
+// OTIMIZAÇÃO: Memoizar componente para evitar re-renders desnecessários
+const FinancialEntryRow = memo(function FinancialEntryRow(props: FinancialEntryRowProps) {
   // Destruturamos TODAS as props
   const {
     id,
@@ -62,40 +66,58 @@ export default function FinancialEntryRow(props: FinancialEntryRowProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { refetchData, updatingIds } = useDashboard();
   
-  // Verifica se esta transação está sendo atualizada ou deletada
-  const isUpdating = updatingIds.includes(id);
+  // OTIMIZAÇÃO: Memoizar valores computados (ANTES do early return)
+  const isUpdating = useMemo(() => updatingIds.includes(id), [updatingIds, id]);
   
-  // Se está deletando ou atualizando, mostra skeleton
-  if (isDeleting || isUpdating) {
-    return <FinancialEntryRowSkeleton />;
-  }
+  // OTIMIZAÇÃO: Memoizar categoryName lookup
+  const categoryName = useMemo(
+    () => categoryId ? categoryMap.get(categoryId) : null,
+    [categoryId, categoryMap]
+  );
 
-  // --- INÍCIO DA MUDANÇA ---
-  // 3. Procura o nome da categoria no mapa
-  const categoryName = categoryId ? categoryMap.get(categoryId) : null;
-  // --- FIM DA MUDANÇA ---
-
-  const handleDelete = (e: React.MouseEvent) => {
+  // OTIMIZAÇÃO: Memoizar handlers
+  const handleDelete = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onDelete(id);
-  };
+  }, [onDelete, id]);
 
-  const transactionData = {
+  const handleOpenModal = useCallback(() => {
+    setIsEditModalOpen(true);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setIsEditModalOpen(false);
+  }, []);
+
+  const handleTransactionUpdated = useCallback(() => {
+    refetchData();
+    setIsEditModalOpen(false);
+  }, [refetchData]);
+
+  // OTIMIZAÇÃO: Memoizar transactionData
+  const transactionData = useMemo(() => ({
     id,
     description: label,
     amount: amount ?? 0,
     date,
     type,
     categoryId
-  };
-  const formattedAmount = formatCurrency(amount ?? 0);
-  const amountColorClass = getAmountColorClass(categoryTitle);
-  const deletingClasses = isDeleting ? "opacity-50 pointer-events-none" : "";
+  }), [id, label, amount, date, type, categoryId]);
+
+  // OTIMIZAÇÃO: Memoizar valores formatados
+  const formattedAmount = useMemo(() => formatCurrency(amount ?? 0), [amount]);
+  const amountColorClass = useMemo(() => getAmountColorClass(categoryTitle), [categoryTitle]);
+  const deletingClasses = useMemo(() => isDeleting ? "opacity-50 pointer-events-none" : "", [isDeleting]);
+  
+  // Se está deletando ou atualizando, mostra skeleton (DEPOIS de todos os hooks)
+  if (isDeleting || isUpdating) {
+    return <FinancialEntryRowSkeleton />;
+  }
 
   return (
     <>
       <div
-        onClick={() => setIsEditModalOpen(true)}
+        onClick={handleOpenModal}
         className={`group flex justify-between items-start p-2 mb-2 text-sm  card-transaction rounded transition-opacity ${deletingClasses} cursor-pointer min-w-0`}
       >
         <div className="flex-1 min-w-0 flex flex-col pr-2">
@@ -123,13 +145,15 @@ export default function FinancialEntryRow(props: FinancialEntryRowProps) {
 
       <TransactionEditModal
         isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        onClose={handleCloseModal}
         transaction={transactionData}
-        onTransactionUpdated={() => {
-          refetchData();
-          setIsEditModalOpen(false);
-        }}
+        onTransactionUpdated={handleTransactionUpdated}
       />
     </>
   );
-}
+});
+
+// OTIMIZAÇÃO: Definir função de comparação customizada para memo
+FinancialEntryRow.displayName = 'FinancialEntryRow';
+
+export default FinancialEntryRow;

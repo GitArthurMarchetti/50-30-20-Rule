@@ -4,11 +4,12 @@ import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-hel
 import { badRequestResponse } from "@/app/lib/errors/responses";
 import { formatCurrency } from "@/app/lib/formatters";
 import { getOrCreateMonthlySummary } from "@/app/lib/services/summary-service";
-import { prisma } from "@/prisma/db";
 import { Decimal } from "@prisma/client/runtime/library";
 import { NextRequest, NextResponse } from "next/server";
 import { TransactionItem, DashboardData } from "@/app/types/dashboardTypes";
-import { isValidMonthFormat } from "@/app/lib/validators"; 
+import { isValidMonthFormat } from "@/app/lib/validators";
+import { getTransactionAggregationsByType, getTransactionsForList } from "@/app/lib/db/query-helpers";
+import { logInfo, logError } from "@/app/lib/logger"; 
 
 const calculateCategoryData = (
   type: TransactionType,
@@ -51,6 +52,7 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
   context: RouteContext<Record<string, never>>,
   session: SessionUser
 ) => {
+  const requestStart = Date.now();
   const { searchParams } = new URL(request.url);
   const monthParam = searchParams.get("month"); 
   const includeResult = searchParams.get("includeResult") !== "false";
@@ -86,77 +88,28 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
     lte: lastDayOfCurrentMonth,
   };
 
+  // OTIMIZAÇÃO: Use optimized query helper for aggregations
+  // Single GROUP BY query instead of 5 separate aggregate queries
   const [
-    incomeResult,
-    needsResult,
-    wantsResult,
-    reservesResult,
-    investmentsResult,
-    currentMonthTransactions, // Still need transactions for items list
+    aggregations,
+    currentMonthTransactions,
   ] = await Promise.all([
-    prisma.transaction.aggregate({
-      where: {
-        userId: session.userId,
-        date: dateRange,
-        type: TransactionType.INCOME,
-      },
-      _sum: { amount: true },
-    }),
-    prisma.transaction.aggregate({
-      where: {
-        userId: session.userId,
-        date: dateRange,
-        type: TransactionType.NEEDS,
-      },
-      _sum: { amount: true },
-    }),
-    prisma.transaction.aggregate({
-      where: {
-        userId: session.userId,
-        date: dateRange,
-        type: TransactionType.WANTS,
-      },
-      _sum: { amount: true },
-    }),
-    prisma.transaction.aggregate({
-      where: {
-        userId: session.userId,
-        date: dateRange,
-        type: TransactionType.RESERVES,
-      },
-      _sum: { amount: true },
-    }),
-    prisma.transaction.aggregate({
-      where: {
-        userId: session.userId,
-        date: dateRange,
-        type: TransactionType.INVESTMENTS,
-      },
-      _sum: { amount: true },
-    }),
-    // Still fetch transactions for items list (needed for calculateCategoryData)
-    prisma.transaction.findMany({
-      where: {
-        userId: session.userId,
-        date: dateRange,
-      },
-      orderBy: { date: "desc" },
-    }),
+    getTransactionAggregationsByType(session.userId, dateRange),
+    getTransactionsForList(session.userId, dateRange, { orderBy: 'date', order: 'desc' }),
   ]);
 
-  // Renda do mês atual (apenas transações INCOME do mês - base para cálculo de metas)
-  const monthlyIncome = new Decimal(incomeResult._sum.amount ?? 0);
+  // OTIMIZAÇÃO: Get values from aggregation map (O(1) lookup)
+  const monthlyIncome = aggregations.get(TransactionType.INCOME) ?? new Decimal(0);
+  const needsExpenses = aggregations.get(TransactionType.NEEDS) ?? new Decimal(0);
+  const wantsExpenses = aggregations.get(TransactionType.WANTS) ?? new Decimal(0);
+  const reservesTotal = aggregations.get(TransactionType.RESERVES) ?? new Decimal(0);
+  const investmentsTotal = aggregations.get(TransactionType.INVESTMENTS) ?? new Decimal(0);
   
   // Total disponível (monthlyIncome + saldo anterior, se incluído)
   let totalAvailable = monthlyIncome;
   if (includeResult) {
     totalAvailable = totalAvailable.add(lastMonthsResultValue);
   }
-
-  const needsExpenses = new Decimal(needsResult._sum.amount ?? 0);
-  const wantsExpenses = new Decimal(wantsResult._sum.amount ?? 0);
-  const reservesTotal = new Decimal(reservesResult._sum.amount ?? 0);
-  const investmentsTotal = new Decimal(investmentsResult._sum.amount ?? 0);
   
   const result = totalAvailable.sub(needsExpenses).sub(wantsExpenses).sub(reservesTotal).sub(investmentsTotal);
 
@@ -210,6 +163,20 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
     },
     lastMonthsResult: lastMonthsResultValue.toNumber(),
   };
+
+  const requestDuration = Date.now() - requestStart;
+  
+  // Log API request completion
+  logInfo('Dashboard request completed', {
+    userId: session.userId,
+    month: monthParam,
+    includeResult,
+    duration: `${requestDuration}ms`,
+    transactionCount: currentMonthTransactions.length,
+    income: monthlyIncome.toNumber(),
+    needs: needsExpenses.toNumber(),
+    wants: wantsExpenses.toNumber(),
+  });
 
   return NextResponse.json(responseData);
 };

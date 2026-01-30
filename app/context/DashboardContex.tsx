@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo, ReactNode } from 'react';
 import { DashboardData } from '../types/dashboardTypes';
 import { dashboardService } from '../lib/client/dashboard-service';
 import { transactionService } from '../lib/client/transaction-service';
@@ -41,6 +41,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   const [creatingTransaction, setCreatingTransaction] = useState(false);
   const hasDataRef = useRef(false);
 
+  // OTIMIZAÇÃO: Memoizar fetchData para evitar recriação desnecessária
   const fetchData = useCallback(async (date: Date, resultIncluded: boolean) => {
     try {
       setError(null);
@@ -59,7 +60,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         : 'Ocorreu um erro.';
       setError(message);
     }
-  }, []);
+  }, []); // Dependências vazias - função não depende de estado externo
 
   useEffect(() => {
     // Se já tem dados, é um refresh (mostra skeleton)
@@ -76,36 +77,37 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [selectedDate, includeResult, fetchData]);
 
-  const handleMonthChange = (monthIndex: number) => {
+  // OTIMIZAÇÃO: Memoizar handlers para evitar recriação
+  const handleMonthChange = useCallback((monthIndex: number) => {
     setSelectedDate(currentDate => {
       const newDate = new Date(currentDate);
       newDate.setDate(1);
       newDate.setMonth(monthIndex);
       return newDate;
     });
-  };
+  }, []);
 
-  const handleYearChange = (year: number) => {
+  const handleYearChange = useCallback((year: number) => {
     setSelectedDate(currentDate => {
       const newDate = new Date(currentDate);
       newDate.setFullYear(year);
       return newDate;
     });
-  };
+  }, []);
 
-  const handleToggleResult = () => {
+  const handleToggleResult = useCallback(() => {
     setIncludeResult(prevState => !prevState);
-  };
+  }, []);
 
-  const refetchData = async () => {
+  const refetchData = useCallback(async () => {
     await fetchData(selectedDate, includeResult);
-  };
+  }, [selectedDate, includeResult, fetchData]);
 
-  const handleDeleteTransaction = async (id: number) => {
+  const handleDeleteTransaction = useCallback(async (id: number) => {
     setDeletingIds(prev => [...prev, id]);
     try {
       await transactionService.deleteTransaction(id);
-      await refetchData();
+      await fetchData(selectedDate, includeResult);
     } catch (err) {
       const message = err instanceof ApiError
         ? err.message
@@ -116,9 +118,9 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setDeletingIds(prev => prev.filter(deletingId => deletingId !== id));
     }
-  };
+  }, [selectedDate, includeResult, fetchData]);
 
-  const setUpdatingTransaction = (id: number, isUpdating: boolean) => {
+  const setUpdatingTransaction = useCallback((id: number, isUpdating: boolean) => {
     setUpdatingIds(prev => {
       if (isUpdating) {
         return prev.includes(id) ? prev : [...prev, id];
@@ -126,9 +128,10 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         return prev.filter(updatingId => updatingId !== id);
       }
     });
-  };
+  }, []);
 
-  const value = {
+  // OTIMIZAÇÃO: Memoizar value object para evitar recriação desnecessária
+  const value = useMemo(() => ({
     data,
     isLoading,
     isRefreshing,
@@ -145,7 +148,23 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     handleDeleteTransaction,
     setCreatingTransaction,
     setUpdatingTransaction,
-  };
+  }), [
+    data,
+    isLoading,
+    isRefreshing,
+    error,
+    selectedDate,
+    includeResult,
+    deletingIds,
+    updatingIds,
+    creatingTransaction,
+    handleMonthChange,
+    handleYearChange,
+    handleToggleResult,
+    refetchData,
+    handleDeleteTransaction,
+    setUpdatingTransaction,
+  ]);
 
   return (
     <DashboardContext.Provider value={value}>

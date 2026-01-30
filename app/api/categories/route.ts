@@ -113,6 +113,10 @@ const postHandler: AuthenticatedHandler<Record<string, never>> = async (
   context: RouteContext<Record<string, never>>,
   session: SessionUser
 ) => {
+  // Declare variables outside try block for use in catch
+  let categoryName = "";
+  let validType: TransactionType | null = null;
+
   try {
     // ------------------------------------------------------------------------
     // Parse & Validate Request Body
@@ -144,7 +148,7 @@ const postHandler: AuthenticatedHandler<Record<string, never>> = async (
         nameValidation.error || "Invalid category name"
       );
     }
-    const categoryName = String(body.name).trim();
+    categoryName = String(body.name).trim();
 
     // ------------------------------------------------------------------------
     // Validate Transaction Type
@@ -156,7 +160,7 @@ const postHandler: AuthenticatedHandler<Record<string, never>> = async (
         ).join(", ")}`
       );
     }
-    const validType = body.type.toUpperCase() as TransactionType;
+    validType = body.type.toUpperCase() as TransactionType;
 
     // ------------------------------------------------------------------------
     // Create Category
@@ -189,7 +193,7 @@ const postHandler: AuthenticatedHandler<Record<string, never>> = async (
       error.code === "P2002"
     ) {
       return conflictResponse(
-        `Category '${String(body.name).trim()}' already exists for type '${body.type.toUpperCase()}'`
+        `Category '${categoryName}' already exists for type '${validType || "unknown"}'`
       );
     }
 

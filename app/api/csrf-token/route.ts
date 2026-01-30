@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     
     // Add CORS headers
     return addCorsHeaders(response, req);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to generate CSRF token" },
       { status: 500 }

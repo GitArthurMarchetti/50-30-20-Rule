@@ -42,7 +42,6 @@ function isOriginAllowed(origin: string | null): boolean {
  */
 export function handleCorsPreflight(request: NextRequest): NextResponse | null {
   const origin = request.headers.get("origin");
-  const method = request.headers.get("access-control-request-method");
 
   if (request.method !== "OPTIONS") {
     return null;

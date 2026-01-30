@@ -9,11 +9,8 @@ const REQUIRED_ENV_VARS = [
   'JWT_SECRET',
 ] as const;
 
-const OPTIONAL_ENV_VARS = [
-  'NODE_ENV',
-  'NEXT_PUBLIC_APP_URL',
-  'ALLOWED_ORIGINS',
-] as const;
+// Optional environment variables (documented but not required)
+// NODE_ENV, NEXT_PUBLIC_APP_URL, ALLOWED_ORIGINS
 
 interface ValidationResult {
   valid: boolean;

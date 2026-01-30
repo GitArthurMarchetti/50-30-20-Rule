@@ -1,4 +1,4 @@
-import { Transaction, TransactionType } from "@/app/generated/prisma";
+import { TransactionType } from "@/app/generated/prisma";
 import { SessionUser } from "@/app/lib/auth-server";
 import { AuthenticatedHandler, RouteContext, withAuth } from "@/app/lib/auth-helpers";
 import { badRequestResponse } from "@/app/lib/errors/responses";
@@ -9,12 +9,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { TransactionItem, DashboardData } from "@/app/types/dashboardTypes";
 import { isValidMonthFormat } from "@/app/lib/validators";
 import { getTransactionAggregationsByType, getTransactionsForList } from "@/app/lib/db/query-helpers";
-import { logInfo, logError } from "@/app/lib/logger"; 
+import { logInfo } from "@/app/lib/logger"; 
+
+type TransactionForCalculation = {
+  id: number;
+  description: string;
+  amount: Decimal;
+  date: Date;
+  type: TransactionType;
+  categoryId: number | null;
+};
 
 const calculateCategoryData = (
   type: TransactionType,
   targetPercentage: number,
-  transactions: Transaction[],
+  transactions: TransactionForCalculation[],
   baseIncome: Decimal
 ) => {
   const categoryTransactions = transactions.filter((t) => t.type === type);

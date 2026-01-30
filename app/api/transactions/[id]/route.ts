@@ -16,10 +16,7 @@ import {
 
 // Internal - Services
 import { prisma } from "@/prisma/db";
-import {
-  updateMonthlySummaryIncremental,
-  updateMonthlySummaryIncrementalWithTx,
-} from "@/app/lib/services/summary-service";
+import { updateMonthlySummaryIncrementalWithTx } from "@/app/lib/services/summary-service";
 
 // Internal - Utilities
 import {

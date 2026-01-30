@@ -24,8 +24,11 @@ export function isValidAmount(amount: unknown): amount is number {
   if (isNaN(amount)) return false;
   if (!isFinite(amount)) return false;
   if (amount < 0) return false;
-  // Reasonable upper bound (1 trillion)
+  // Reasonable upper bound (1 trillion) - prevents integer overflow
   if (amount > 1_000_000_000_000) return false;
+  
+  // Prevent extremely small amounts that could cause precision issues
+  if (amount > 0 && amount < 0.01) return false;
   return true;
 }
 
@@ -188,12 +191,31 @@ export function validatePasswordStrength(password: string): {
 
 /**
  * Sanitizes string input to prevent XSS
+ * Removes potentially dangerous characters and HTML entities
  */
 export function sanitizeString(input: string): string {
   return input
     .trim()
     .replace(/[<>]/g, "") // Remove potential HTML tags
+    .replace(/javascript:/gi, "") // Remove javascript: protocol
+    .replace(/on\w+=/gi, "") // Remove event handlers (onclick=, onerror=, etc.)
+    .replace(/&/g, "&amp;") // Escape HTML entities
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
     .slice(0, 1000); // Limit length
+}
+
+/**
+ * Sanitizes description text (less aggressive than sanitizeString)
+ * Allows more characters but still prevents XSS
+ */
+export function sanitizeDescription(input: string): string {
+  return input
+    .trim()
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "") // Remove script tags
+    .replace(/javascript:/gi, "") // Remove javascript: protocol
+    .replace(/on\w+\s*=/gi, "") // Remove event handlers
+    .slice(0, 255); // Limit to database column size
 }
 
 /**

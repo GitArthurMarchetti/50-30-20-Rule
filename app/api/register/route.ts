@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/prisma/db";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@/app/generated/prisma";
@@ -7,11 +7,24 @@ import { safeParseJson, isValidEmail, sanitizeUsername, validatePasswordStrength
 import { initializeDefaultCategories } from "@/app/lib/category-helpers";
 import { logSuccess, logError } from "@/app/lib/logger";
 import { checkRateLimit, getClientIdentifier } from "@/app/lib/rate-limiter";
+import { validateContentType } from "@/app/lib/security/content-type-validator";
+import { handleCorsPreflight, addCorsHeaders } from "@/app/lib/security/cors";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   let emailNorm: string | undefined;
   
   try {
+    // Handle CORS preflight
+    const corsResponse = handleCorsPreflight(req);
+    if (corsResponse) {
+      return corsResponse;
+    }
+
+    // Validate Content-Type
+    const contentTypeValidation = validateContentType(req);
+    if (!contentTypeValidation.valid) {
+      return badRequestResponse(contentTypeValidation.error || "Invalid Content-Type");
+    }
     // Rate limiting - 3 registrations per 15 minutes per IP
     const clientId = getClientIdentifier(req);
     const rateLimit = checkRateLimit(`register:${clientId}`, {
@@ -97,7 +110,8 @@ export async function POST(req: Request) {
     }
 
     logSuccess("User registered successfully", { userId: newUser.id, email: emailNorm });
-    return NextResponse.json({ message: "User created" }, { status: 201 });
+    const response = NextResponse.json({ message: "User created" }, { status: 201 });
+    return addCorsHeaders(response, req);
   } catch (e: unknown) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return conflictResponse("Email/username already registered");

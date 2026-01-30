@@ -6,12 +6,26 @@ import { unauthorizedResponse, internalErrorResponse, badRequestResponse, tooMan
 import { safeParseJson, isValidEmail } from "@/app/lib/validators";
 import { logSuccess, logError } from "@/app/lib/logger";
 import { checkRateLimit, getClientIdentifier } from "@/app/lib/rate-limiter";
+import { validateContentType } from "@/app/lib/security/content-type-validator";
+import { handleCorsPreflight, addCorsHeaders } from "@/app/lib/security/cors";
+import { NextRequest } from "next/server";
 
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   let emailNorm: string | undefined;
   
   try {
+    // Handle CORS preflight
+    const corsResponse = handleCorsPreflight(req);
+    if (corsResponse) {
+      return corsResponse;
+    }
+
+    // Validate Content-Type
+    const contentTypeValidation = validateContentType(req);
+    if (!contentTypeValidation.valid) {
+      return badRequestResponse(contentTypeValidation.error || "Invalid Content-Type");
+    }
     // Rate limiting - 5 attempts per 15 minutes per IP
     const clientId = getClientIdentifier(req);
     const rateLimit = checkRateLimit(`login:${clientId}`, {
@@ -83,7 +97,7 @@ export async function POST(req: Request) {
     });
 
     logSuccess("User logged in successfully", { userId: user.id, email: emailNorm });
-    return res;
+    return addCorsHeaders(res, req);
   } catch (e) {
     logError("Login failed", e, { email: emailNorm });
     return internalErrorResponse("Internal error");

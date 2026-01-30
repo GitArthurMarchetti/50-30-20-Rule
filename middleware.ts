@@ -10,7 +10,8 @@ function isPublicPath(pathname: string) {
     pathname === "/login" ||
     pathname === "/register" ||
     pathname === "/api/login" ||
-    pathname === "/api/register" ||   
+    pathname === "/api/register" ||
+    pathname === "/api/csrf-token" || // Allow CSRF token endpoint
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
     pathname.startsWith("/robots.txt") ||

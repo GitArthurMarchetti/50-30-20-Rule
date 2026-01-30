@@ -29,7 +29,10 @@ export function UserSheet() {
           setUser(null)
         }
       } catch (error) {
-        console.error("Error fetching user:", error)
+        // Log apenas em desenvolvimento
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error fetching user:", error);
+        }
         setUser(null)
       } finally {
         setIsLoading(false)
@@ -49,10 +52,16 @@ export function UserSheet() {
         setUser(null)
         router.push("/login")
       } else {
-        console.error("Logout failed")
+        // Log apenas em desenvolvimento
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Logout failed");
+        }
       }
     } catch (error) {
-      console.error("Error during logout:", error)
+      // Log apenas em desenvolvimento
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Error during logout:", error);
+      }
     }
   }
 

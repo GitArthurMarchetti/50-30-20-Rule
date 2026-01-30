@@ -1,11 +1,23 @@
-'use client';
+"use client";
 
-import { TransactionType } from "@/app/generated/prisma";
+// ============================================================================
+// IMPORTS
+// ============================================================================
+// External
 import { useEffect, useState, FormEvent } from "react";
+
+// Internal - Types
+import { TransactionType } from "@/app/generated/prisma";
+
+// Internal - Services
 import { categoryService, Category } from "@/app/lib/client/category-service";
 import { transactionService } from "@/app/lib/client/transaction-service";
 import { ApiError } from "@/app/lib/client/api-client";
+
+// Internal - Context
 import { useDashboard } from "@/app/context/DashboardContex";
+
+// Internal - Components
 import {
   Dialog,
   DialogContent,
@@ -15,143 +27,162 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// 1. Definimos os dados que este modal espera
+// ============================================================================
+// TYPES
+// ============================================================================
 interface TransactionData {
-    id: number;
-    description: string;
-    amount: number | string; // Vem como número, mas o input usa string
-    date: string | Date;
-    type: TransactionType; // TransactionType: INCOME, WANTS, NEEDS, RESERVES, INVESTMENTS
-    categoryId: number | null; // Category ID: references a Category like "Groceries", "Salary"
+  id: number;
+  description: string;
+  amount: number | string;
+  date: string | Date;
+  type: TransactionType;
+  categoryId: number | null;
 }
 
-// Form data type - categoryId can be string in form state
-interface TransactionFormData extends Omit<TransactionData, 'categoryId'> {
-    categoryId: number | string | null; // Allow string for form handling
+interface TransactionFormData extends Omit<TransactionData, "categoryId"> {
+  categoryId: number | string | null;
 }
 
 interface EditModalProps {
-    transaction: TransactionData;
-    isOpen: boolean;
-    onClose: () => void;
-    onTransactionUpdated: () => void; // Para recarregar os dados
+  transaction: TransactionData;
+  isOpen: boolean;
+  onClose: () => void;
+  onTransactionUpdated: () => void;
 }
 
+// ============================================================================
+// COMPONENT
+// ============================================================================
 export default function TransactionEditModal({
-    transaction,
-    isOpen,
-    onClose,
-    onTransactionUpdated,
+  transaction,
+  isOpen,
+  onClose,
+  onTransactionUpdated,
 }: EditModalProps) {
-    const { setUpdatingTransaction } = useDashboard();
-    const [formData, setFormData] = useState<TransactionFormData>({ 
+  // --------------------------------------------------------------------------
+  // State
+  // --------------------------------------------------------------------------
+  const { setUpdatingTransaction } = useDashboard();
+  const [formData, setFormData] = useState<TransactionFormData>({
+    ...transaction,
+    categoryId: transaction.categoryId ?? null,
+  });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // --------------------------------------------------------------------------
+  // Effects
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+    if (isOpen) {
+      // Initialize form data
+      setFormData({
         ...transaction,
-        categoryId: transaction.categoryId ?? null
-    });
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [isCategoriesLoading, setIsCategoriesLoading] = useState(false); // Estado de loading
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
+        date: new Date(transaction.date).toISOString().split("T")[0],
+        amount: String(transaction.amount),
+        categoryId: transaction.categoryId ?? null,
+      });
+      setError("");
+      setIsCategoriesLoading(true);
 
-    useEffect(() => {
-        if (isOpen) {
-            // Initialize form data - convert categoryId to string for form handling
-            setFormData({
-                ...transaction,
-                date: new Date(transaction.date).toISOString().split('T')[0],
-                amount: String(transaction.amount),
-                // Keep categoryId as is (number or null), but we'll convert to string in the select
-                categoryId: transaction.categoryId ?? null
-            });
-            setError("");
-            setIsCategoriesLoading(true); 
-
-            // Ensure transaction.type is properly serialized
-            const typeString = String(transaction.type);
-            console.log("Fetching categories for type:", typeString, transaction.type);
-
-            categoryService.getAll(transaction.type)
-                .then((data) => {
-                    console.log("Categories loaded:", data);
-                    setCategories(Array.isArray(data) ? data : []);
-                })
-                .catch((err) => {
-                    console.error("Failed to fetch categories", err);
+      // Fetch categories for this transaction type
+      categoryService
+        .getAll(transaction.type)
+        .then((data) => {
+          setCategories(Array.isArray(data) ? data : []);
+        })
+        .catch((err) => {
+          if (process.env.NODE_ENV === "development") {
+            console.error("Failed to fetch categories", err);
+          }
                     setCategories([]);
-                    // Don't set error state for empty categories - it's valid to have no categories
-                    if (err instanceof ApiError && err.statusCode >= 500) {
-                        setError(err.message || "Failed to load categories");
-                    }
-                })
-                .finally(() => {
-                    setIsCategoriesLoading(false); 
-                });
-        }
-    }, [isOpen, transaction]); 
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => {
-            // For categoryId, keep it as string in form state, convert to number/null on submit
-            if (name === 'categoryId') {
-                return {
-                    ...prev,
-                    [name]: value === '' ? null : value, // Store as string or null
-                };
-            }
-            return {
-                ...prev,
-                [name]: value,
-            };
+          // Don't set error state for empty categories - it's valid to have no categories
+          if (err instanceof ApiError && err.statusCode >= 500) {
+            setError(err.message || "Failed to load categories");
+          }
+        })
+        .finally(() => {
+          setIsCategoriesLoading(false);
         });
-    };
+    }
+  }, [isOpen, transaction]);
 
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setUpdatingTransaction(transaction.id, true);
-        setError("");
+  // --------------------------------------------------------------------------
+  // Handlers
+  // --------------------------------------------------------------------------
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => {
+      // For categoryId, keep it as string in form state, convert to number/null on submit
+      if (name === "categoryId") {
+        return {
+          ...prev,
+          [name]: value === "" ? null : value,
+        };
+      }
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
+  };
 
-        try {
-            const numericAmount = parseFloat(String(formData.amount).replace(',', '.'));
-            if (numericAmount < 0) {
-                setError("Value cannot be negative.");
-                setIsLoading(false);
-                setUpdatingTransaction(transaction.id, false);
-                return;
-            }
-            // Convert categoryId from string (form) to number (API) or null
-            const categoryId = formData.categoryId 
-                ? (typeof formData.categoryId === 'number' 
-                    ? formData.categoryId 
-                    : parseInt(String(formData.categoryId), 10))
-                : null;
-            
-            // Validate categoryId is a valid number if provided
-            if (categoryId !== null && (isNaN(categoryId) || categoryId <= 0)) {
-                setError("Invalid category selected");
-                setIsLoading(false);
-                setUpdatingTransaction(transaction.id, false);
-                return;
-            }
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setUpdatingTransaction(transaction.id, true);
+    setError("");
 
-            await transactionService.update(transaction.id, {
-                description: formData.description,
-                amount: numericAmount,
-                type: transaction.type, // TransactionType: INCOME, WANTS, NEEDS, etc.
-                categoryId: categoryId, // Category ID: number referencing a category like "Groceries", "Salary"
-                date: new Date(formData.date + 'T00:00:00'),
-            });
+    try {
+      // Parse and validate amount
+      const numericAmount = parseFloat(
+        String(formData.amount).replace(",", ".")
+      );
+      if (numericAmount < 0) {
+        setError("Value cannot be negative.");
+        setIsLoading(false);
+        setUpdatingTransaction(transaction.id, false);
+        return;
+      }
 
-            await onTransactionUpdated();
-        } catch (err) {
-            const message = err instanceof ApiError
-                ? err.message
-                : err instanceof Error
-                ? err.message
-                : "Ocorreu um erro desconhecido.";
-            setError(message);
-        } finally {
+      // Convert categoryId from string (form) to number (API) or null
+      const categoryId = formData.categoryId
+        ? typeof formData.categoryId === "number"
+          ? formData.categoryId
+          : parseInt(String(formData.categoryId), 10)
+        : null;
+
+      // Validate categoryId is a valid number if provided
+      if (categoryId !== null && (isNaN(categoryId) || categoryId <= 0)) {
+        setError("Invalid category selected");
+        setIsLoading(false);
+        setUpdatingTransaction(transaction.id, false);
+        return;
+      }
+
+      // Update transaction
+      await transactionService.update(transaction.id, {
+        description: formData.description,
+        amount: numericAmount,
+        type: transaction.type,
+        categoryId: categoryId,
+        date: new Date(formData.date + "T00:00:00"),
+      });
+
+      await onTransactionUpdated();
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+          ? err.message
+          : "Ocorreu um erro desconhecido.";
+      setError(message);
+    } finally {
             setIsLoading(false);
             setUpdatingTransaction(transaction.id, false);
         }

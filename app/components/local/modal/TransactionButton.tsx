@@ -1,12 +1,24 @@
 "use client";
 
+// ============================================================================
+// IMPORTS
+// ============================================================================
+// External
 import { useState, FormEvent, useEffect } from "react";
 import { PlusCircle } from "lucide-react";
+
+// Internal - Types
 import { TransactionType } from "@/app/generated/prisma";
+
+// Internal - Services
 import { categoryService, Category } from "@/app/lib/client/category-service";
 import { transactionService } from "@/app/lib/client/transaction-service";
 import { ApiError } from "@/app/lib/client/api-client";
+
+// Internal - Context
 import { useDashboard } from "@/app/context/DashboardContex";
+
+// Internal - Components
 import {
   Dialog,
   DialogContent,
@@ -17,32 +29,49 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+// ============================================================================
+// TYPES
+// ============================================================================
+
 interface AddTransactionButtonProps {
   categoryType: TransactionType;
   onTransactionAdded: () => void;
   selectedDate: Date;
 }
 
-export default function AddTransactionButton({ categoryType, onTransactionAdded, selectedDate }: AddTransactionButtonProps) {
+// ============================================================================
+// COMPONENT
+// ============================================================================
+export default function AddTransactionButton({
+  categoryType,
+  onTransactionAdded,
+  selectedDate,
+}: AddTransactionButtonProps) {
+  // --------------------------------------------------------------------------
+  // State
+  // --------------------------------------------------------------------------
   const { setCreatingTransaction } = useDashboard();
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(selectedDate.toISOString().split('T')[0]);
-  
+  const [date, setDate] = useState(
+    selectedDate.toISOString().split("T")[0]
+  );
   const [categoryId, setCategoryId] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
-
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
 
+  // --------------------------------------------------------------------------
+  // Effects
+  // --------------------------------------------------------------------------
   useEffect(() => {
     const newDate = new Date(selectedDate);
-    newDate.setDate(1); 
-    setDate(newDate.toISOString().split('T')[0]);
-  }, [selectedDate]); 
+    newDate.setDate(1);
+    setDate(newDate.toISOString().split("T")[0]);
+  }, [selectedDate]);
 
   useEffect(() => {
     if (open) {
@@ -50,23 +79,22 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
       setAmount("");
       setCategoryId("");
       setError("");
-      setIsCategoriesLoading(true); 
-      
-      const newDate = new Date(selectedDate);
-      newDate.setDate(1); 
-      setDate(newDate.toISOString().split('T')[0]);
+      setIsCategoriesLoading(true);
 
-      // Ensure categoryType is properly serialized as a string
-      const typeString = String(categoryType);
-      console.log("Fetching categories for type:", typeString, categoryType);
-      
-      categoryService.getAll(categoryType)
+      const newDate = new Date(selectedDate);
+      newDate.setDate(1);
+      setDate(newDate.toISOString().split("T")[0]);
+
+      // Fetch categories for this transaction type
+      categoryService
+        .getAll(categoryType)
         .then((data) => {
-          console.log("Categories loaded:", data);
           setCategories(Array.isArray(data) ? data : []);
         })
         .catch((err) => {
-          console.error("Failed to fetch categories", err);
+          if (process.env.NODE_ENV === "development") {
+            console.error("Failed to fetch categories", err);
+          }
           setCategories([]);
           // Don't set error state for empty categories - it's valid to have no categories
           if (err instanceof ApiError && err.statusCode >= 500) {
@@ -74,11 +102,14 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
           }
         })
         .finally(() => {
-          setIsCategoriesLoading(false); 
+          setIsCategoriesLoading(false);
         });
     }
-  }, [open, selectedDate, categoryType]); 
+  }, [open, selectedDate, categoryType]);
 
+  // --------------------------------------------------------------------------
+  // Handlers
+  // --------------------------------------------------------------------------
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!description || !amount) {
@@ -90,49 +121,55 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
     setError("");
 
     try {
-      const numericAmount = parseFloat(amount.replace(',', '.'));
+      // Parse and validate amount
+      const numericAmount = parseFloat(amount.replace(",", "."));
       if (isNaN(numericAmount)) {
         setError("Invalid Value.");
         setIsLoading(false);
         setCreatingTransaction(false);
         return;
       }
+
       if (numericAmount < 0) {
         setError("Value cannot be negative.");
         setIsLoading(false);
         setCreatingTransaction(false);
         return;
       }
-      
+
       // Convert categoryId from string (form) to number (API) or null
-      const finalCategoryId = categoryId && categoryId !== '' 
-        ? parseInt(categoryId, 10) 
-        : null;
-      
+      const finalCategoryId =
+        categoryId && categoryId !== "" ? parseInt(categoryId, 10) : null;
+
       // Validate categoryId is a valid number if provided
-      if (finalCategoryId !== null && (isNaN(finalCategoryId) || finalCategoryId <= 0)) {
+      if (
+        finalCategoryId !== null &&
+        (isNaN(finalCategoryId) || finalCategoryId <= 0)
+      ) {
         setError("Invalid category selected");
         setIsLoading(false);
         setCreatingTransaction(false);
         return;
       }
 
+      // Create transaction
       await transactionService.create({
         description,
         amount: numericAmount,
-        date: new Date(date + 'T00:00:00'),
-        type: categoryType, // TransactionType: INCOME, WANTS, NEEDS, RESERVES, INVESTMENTS
-        categoryId: finalCategoryId, // Category ID: number referencing a category like "Groceries", "Salary"
+        date: new Date(date + "T00:00:00"),
+        type: categoryType,
+        categoryId: finalCategoryId,
       });
-      
+
       setOpen(false);
       await onTransactionAdded();
     } catch (err) {
-      const message = err instanceof ApiError
-        ? err.message
-        : err instanceof Error
-        ? err.message
-        : "An unknown error occurred.";
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+          ? err.message
+          : "An unknown error occurred";
       setError(message);
     } finally {
       setIsLoading(false);
@@ -218,7 +255,7 @@ export default function AddTransactionButton({ categoryType, onTransactionAdded,
               id="categoryId"
               value={categoryId}
               onChange={(e) => {
-                console.log("Category selected:", e.target.value);
+                // Removido console.log de debug
                 setCategoryId(e.target.value);
               }}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"

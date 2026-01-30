@@ -38,8 +38,10 @@ export default function LoginForm() {
       // Auto-focus on email input
       emailInputRef.current?.focus();
     } catch (error) {
-      // localStorage might not be available (SSR)
-      console.warn("Could not access localStorage:", error);
+      // localStorage might not be available (SSR) - silenciosamente falha
+      if (process.env.NODE_ENV === 'development') {
+        console.warn("Could not access localStorage:", error);
+      }
     }
   }, []);
 
@@ -88,8 +90,10 @@ export default function LoginForm() {
       try {
         localStorage.setItem("rememberedEmail", email.trim().toLowerCase());
       } catch (error) {
-        // localStorage might not be available
-        console.warn("Could not save email to localStorage:", error);
+        // localStorage might not be available - silenciosamente falha
+        if (process.env.NODE_ENV === 'development') {
+          console.warn("Could not save email to localStorage:", error);
+        }
       }
       router.push(next);
       router.refresh();

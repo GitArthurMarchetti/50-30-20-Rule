@@ -3,6 +3,8 @@
  * For production, consider using Redis or a dedicated rate limiting service
  */
 
+import { logWarning } from "@/app/lib/logger";
+
 interface RateLimitEntry {
   count: number;
   resetTime: number;
@@ -100,6 +102,16 @@ export function checkRateLimit(
 
   // Check if limit exceeded
   if (entry.count >= config.maxRequests) {
+    // Log rate limit exceeded
+    const endpoint = identifier.split(':')[0] || 'unknown';
+    logWarning('Rate limit exceeded', {
+      identifier: identifier.replace(/login:email:/, 'email:'), // Sanitize email
+      endpoint,
+      maxRequests: config.maxRequests,
+      windowMs: config.windowMs,
+      resetTime: new Date(entry.resetTime).toISOString(),
+    });
+    
     return {
       allowed: false,
       remaining: 0,
@@ -128,4 +140,21 @@ export function getClientIdentifier(req: Request): string {
   const ip = forwarded?.split(",")[0] || realIp || "unknown";
   
   return ip.trim();
+}
+
+/**
+ * Clear rate limit for a specific identifier (useful for debugging/admin)
+ * @param identifier - Identifier to clear (e.g., "login:email:user@example.com")
+ */
+export function clearRateLimit(identifier: string): boolean {
+  return rateLimitStore.delete(identifier);
+}
+
+/**
+ * Clear all rate limits (use with caution - mainly for debugging)
+ */
+export function clearAllRateLimits(): number {
+  const count = rateLimitStore.size;
+  rateLimitStore.clear();
+  return count;
 }

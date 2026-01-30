@@ -2,6 +2,8 @@
  * Base API Client class following SOLID principles
  * Provides a centralized way to handle HTTP requests with consistent error handling
  */
+import { getCsrfToken } from './csrf-client';
+
 export class ApiError extends Error {
   constructor(message: string, public statusCode: number) {
     super(message);
@@ -36,13 +38,37 @@ class ApiClient {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+      // Build headers
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(options?.headers as Record<string, string>),
+      };
+
+      // Add CSRF token for state-changing methods
+      const method = (options?.method || 'GET').toUpperCase();
+      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+        try {
+          const csrfToken = await getCsrfToken();
+          if (!csrfToken) {
+            throw new Error('CSRF token is empty');
+          }
+          // Use lowercase header name to match server expectation
+          headers['x-csrf-token'] = csrfToken;
+        } catch (error) {
+          // If CSRF token fetch fails, throw error to prevent request
+          // This ensures we never send requests without CSRF protection
+          throw new ApiError(
+            `Failed to obtain CSRF token: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            500
+          );
+        }
+      }
+
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options?.headers,
-        },
+        headers,
+        credentials: 'include', // Include cookies for session
       });
 
       clearTimeout(timeoutId);

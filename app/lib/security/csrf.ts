@@ -45,11 +45,18 @@ export async function getCsrfToken(): Promise<string> {
  * @returns true if token is valid, false otherwise
  */
 export async function verifyCsrfToken(request: Request): Promise<boolean> {
-  const headerToken = request.headers.get(CSRF_TOKEN_HEADER);
+  // Try both lowercase and uppercase header names (HTTP headers are case-insensitive)
+  const headerToken = request.headers.get(CSRF_TOKEN_HEADER) 
+    || request.headers.get(CSRF_TOKEN_HEADER.toUpperCase())
+    || request.headers.get('X-CSRF-Token');
+  
   if (!headerToken) {
     logWarning('CSRF token validation failed: missing header token', {
       endpoint: new URL(request.url).pathname,
       method: request.method,
+      availableHeaders: Array.from(request.headers.keys()).filter(h => 
+        h.toLowerCase().includes('csrf')
+      ),
     });
     return false;
   }

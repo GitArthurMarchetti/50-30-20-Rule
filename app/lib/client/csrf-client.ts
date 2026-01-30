@@ -22,14 +22,25 @@ export async function getCsrfToken(): Promise<string> {
   }
 
   // Fetch new token
-  tokenPromise = fetch('/api/csrf-token')
+  tokenPromise = fetch('/api/csrf-token', {
+    credentials: 'include', // Include cookies for session
+  })
     .then(async (res) => {
       if (!res.ok) {
-        throw new Error('Failed to fetch CSRF token');
+        const errorText = await res.text().catch(() => 'Unknown error');
+        throw new Error(`Failed to fetch CSRF token: ${res.status} ${errorText}`);
       }
       const data = await res.json();
+      if (!data.csrfToken || typeof data.csrfToken !== 'string') {
+        throw new Error('Invalid CSRF token response format');
+      }
       csrfTokenCache = data.csrfToken;
       return data.csrfToken;
+    })
+    .catch((error) => {
+      // Clear cache on error to force retry on next request
+      csrfTokenCache = null;
+      throw error;
     })
     .finally(() => {
       tokenPromise = null;

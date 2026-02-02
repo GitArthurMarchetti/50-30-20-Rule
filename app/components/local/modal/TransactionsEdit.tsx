@@ -94,10 +94,9 @@ export default function TransactionEditModal({
           setCategories(Array.isArray(data) ? data : []);
         })
         .catch((err) => {
-          if (process.env.NODE_ENV === "development") {
-            console.error("Failed to fetch categories", err);
-          }
-                    setCategories([]);
+          // WHY: Silently handle category fetch failures - empty categories are valid
+          // Errors are handled through error state for server errors (500+)
+          setCategories([]);
           // Don't set error state for empty categories - it's valid to have no categories
           if (err instanceof ApiError && err.statusCode >= 500) {
             setError(err.message || "Failed to load categories");

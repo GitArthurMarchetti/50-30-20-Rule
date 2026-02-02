@@ -92,9 +92,8 @@ export default function AddTransactionButton({
           setCategories(Array.isArray(data) ? data : []);
         })
         .catch((err) => {
-          if (process.env.NODE_ENV === "development") {
-            console.error("Failed to fetch categories", err);
-          }
+          // WHY: Silently handle category fetch failures - empty categories are valid
+          // Errors are handled through error state for server errors (500+)
           setCategories([]);
           // Don't set error state for empty categories - it's valid to have no categories
           if (err instanceof ApiError && err.statusCode >= 500) {
@@ -255,7 +254,6 @@ export default function AddTransactionButton({
               id="categoryId"
               value={categoryId}
               onChange={(e) => {
-                // Removido console.log de debug
                 setCategoryId(e.target.value);
               }}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"

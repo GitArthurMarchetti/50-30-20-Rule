@@ -27,6 +27,53 @@ Tests database connectivity and Prisma client functionality.
 npm run check:health
 ```
 
+#### `verify-financial-calculations.ts` 🧪
+**QA Verification Script** - Verifies financial calculations, data integrity, and edge cases.
+
+```bash
+npm run verify:calculations
+```
+
+**What it verifies:**
+- ✅ **MonthlySummary calculations**: Ensures `final_balance` is calculated correctly
+  - Formula: `starting_balance + total_income - needs_expenses - wants_expenses - total_savings - total_investments`
+- ✅ **Data integrity**: Verifies that `MonthlySummary` aggregates match actual `Transaction` totals
+- ✅ **50/30/10/10 rule compliance**: Checks if expenses align with the Gold Rule percentages (warning only, not enforced)
+- ✅ **Edge cases**:
+  - Negative transaction amounts (should not exist)
+  - Future dates beyond 1 year (suspicious)
+  - Extremely large amounts (>1B, suspicious)
+
+**Output:**
+- Shows detailed results for each MonthlySummary
+- Reports any calculation errors or data mismatches
+- Provides warnings for rule deviations
+- Exits with code 1 if critical issues are found
+
+#### `test-transaction-import.ts` 🧪
+**QA Test Script** - Tests transaction import functionality with edge cases.
+
+```bash
+npm run test:import
+```
+
+**Test cases covered:**
+1. ✅ **Empty file upload** - Verifies rejection of empty files
+2. ✅ **Invalid CSV/JSON format** - Tests handling of malformed files
+3. ✅ **Duplicate detection** - Verifies detection of transactions with same date + amount
+4. ✅ **Expired pending transactions** - Tests TTL expiration (5 hours)
+5. ✅ **Batch commit with mixed IDs** - Tests commit with valid/invalid pending transaction IDs
+6. ✅ **Category type compatibility** - Validates category type matches transaction type
+7. ✅ **MonthlySummary update correctness** - Verifies 50/30/10/10 rule compliance after updates
+8. ✅ **Atomic operations** - Tests rollback on error (transaction integrity)
+9. ✅ **Large files** - Performance test with 1000+ transactions
+
+**Output:**
+- Runs all test cases sequentially
+- Shows pass/fail status for each test
+- Provides detailed results and statistics
+- Exits with code 1 if any test fails
+
 ### Database Management
 
 #### `reset-db.ts`
@@ -70,6 +117,8 @@ npm run db:reset:seed
 - `npm run clean:all` - Clean build cache and generated Prisma client
 - `npm run check:env` - Check environment variables
 - `npm run check:health` - Check database health
+- `npm run verify:calculations` - Verify financial calculations and data integrity (QA)
+- `npm run test:import` - Test transaction import functionality with edge cases (QA)
 
 ## Workflow Examples
 
@@ -103,6 +152,9 @@ npm run validate
 npm run type-check
 npm run lint
 npm run db:validate
+
+# Verify financial calculations (QA)
+npm run verify:calculations
 ```
 
 ### Database Changes

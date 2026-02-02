@@ -133,12 +133,31 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
   }
 
   try {
-    const category = await prisma.category.update({
+    // SECURITY: Use updateMany with userId to prevent IDOR attacks
+    // updateMany allows non-unique fields in where clause, ensuring ownership
+    const updateResult = await prisma.category.updateMany({
       where: {
         id: categoryId,
+        userId: session.userId, // Prevent IDOR: ensure user owns the category
       },
       data: updateData,
     });
+
+    if (updateResult.count === 0) {
+      return notFoundResponse("Category not found or access denied");
+    }
+
+    // Fetch updated category to return
+    const category = await prisma.category.findFirst({
+      where: {
+        id: categoryId,
+        userId: session.userId,
+      },
+    });
+
+    if (!category) {
+      return notFoundResponse("Category not found");
+    }
 
     logSuccess("Category updated successfully", { 
       categoryId: categoryId, 
@@ -189,11 +208,18 @@ const deleteHandler: AuthenticatedHandler<RouteParams> = async (
   }
 
   try {
-    await prisma.category.delete({
+    // SECURITY: Use deleteMany with userId to prevent IDOR attacks
+    // deleteMany allows non-unique fields in where clause, ensuring ownership
+    const deleteResult = await prisma.category.deleteMany({
       where: {
         id: categoryId,
+        userId: session.userId, // Prevent IDOR: ensure user owns the category
       },
     });
+
+    if (deleteResult.count === 0) {
+      return notFoundResponse("Category not found or access denied");
+    }
 
     logSuccess("Category deleted successfully", { 
       categoryId: categoryId, 

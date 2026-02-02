@@ -79,7 +79,7 @@ export default function TransactionImportButton({
       try {
         const pending = await pendingTransactionService.getAll();
         setPendingCount(pending.length);
-      } catch (err) {
+      } catch {
         // Silently fail - button will show default state
         setPendingCount(0);
       } finally {
@@ -97,7 +97,7 @@ export default function TransactionImportButton({
     try {
       const pending = await pendingTransactionService.getAll();
       setPendingCount(pending.length);
-    } catch (err) {
+    } catch {
       // Silently fail
     }
   };

@@ -28,7 +28,7 @@ export function UserSheet() {
         } else {
           setUser(null)
         }
-      } catch (error) {
+      } catch {
         // WHY: Silently handle user fetch failure - component gracefully handles null user
         setUser(null)
       } finally {
@@ -52,7 +52,7 @@ export function UserSheet() {
         // WHY: Logout failure is handled silently - user remains logged in
         // In production, server-side logging captures these errors
       }
-    } catch (error) {
+    } catch {
       // WHY: Network errors during logout are handled silently
       // User remains logged in if logout fails - better UX than showing error
     }

@@ -37,7 +37,7 @@ export default function LoginForm() {
       }
       // Auto-focus on email input
       emailInputRef.current?.focus();
-    } catch (error) {
+    } catch {
       // WHY: localStorage might not be available in SSR - silently fail
       // This is expected behavior and doesn't affect functionality
     }
@@ -87,7 +87,7 @@ export default function LoginForm() {
       // Save email to localStorage for next time
       try {
         localStorage.setItem("rememberedEmail", email.trim().toLowerCase());
-      } catch (error) {
+      } catch {
         // WHY: localStorage might not be available - silently fail
         // Email saving is a convenience feature, not critical functionality
       }

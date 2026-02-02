@@ -83,13 +83,8 @@ function DashboardContent() {
       );
       setCategoryMap(newMap);
     } catch (e) {
-      if (process.env.NODE_ENV === "development") {
-        if (e instanceof Error) {
-          console.error("Falha ao buscar categorias", e.message);
-        } else {
-          console.error("Falha ao buscar categorias", String(e));
-        }
-      }
+      // WHY: Silently handle category fetch failures - component can function without category names
+      // Category IDs are still valid even if names can't be loaded
     } finally {
       setIsCategoryLoading(false);
     }
@@ -163,6 +158,7 @@ function DashboardContent() {
           onYearChange={handleYearChange}
           financialStatement={data.financialStatement}
           isRefreshing={isRefreshing}
+          onImportSuccess={handleRefetch}
         />
       }
     >

@@ -20,13 +20,15 @@ export default function AnnualLink({ selectedDate }: AnnualLinkProps) {
   }
   
   return (
-    <button className="flex flex-row items-center   card-transaction   m-12"
-      onClick={handleLink}  
+    <button 
+      className="flex flex-row items-center gap-3 card-transaction px-4 py-2 hover:scale-[1.02] transition-all duration-200"
+      onClick={handleLink}
+      aria-label="View annual summary"
     >
-      <p className="mr-3">
+      <span className="text-sm font-medium text-foreground">
         Annual Database
-      </p>
-      <FaBookOpen className="h-7 w-auto" />
+      </span>
+      <FaBookOpen className="h-5 w-5 text-foreground/80" />
     </button>
   );
 }

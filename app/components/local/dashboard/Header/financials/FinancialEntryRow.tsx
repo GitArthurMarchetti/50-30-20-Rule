@@ -118,7 +118,7 @@ const FinancialEntryRow = memo(function FinancialEntryRow(props: FinancialEntryR
     <>
       <div
         onClick={handleOpenModal}
-        className={`group flex justify-between items-start p-2 mb-2 text-sm  card-transaction rounded transition-opacity ${deletingClasses} cursor-pointer min-w-0`}
+        className={`group flex justify-between items-start p-3 mb-2 text-sm card-transaction rounded transition-all duration-200 hover:shadow-sm ${deletingClasses} cursor-pointer min-w-0`}
       >
         <div className="flex-1 min-w-0 flex flex-col pr-2">
           <span className="secondary-text line-clamp-2 break-words">{label}</span>

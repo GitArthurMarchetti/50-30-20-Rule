@@ -38,10 +38,8 @@ export default function LoginForm() {
       // Auto-focus on email input
       emailInputRef.current?.focus();
     } catch (error) {
-      // localStorage might not be available (SSR) - silenciosamente falha
-      if (process.env.NODE_ENV === 'development') {
-        console.warn("Could not access localStorage:", error);
-      }
+      // WHY: localStorage might not be available in SSR - silently fail
+      // This is expected behavior and doesn't affect functionality
     }
   }, []);
 
@@ -90,10 +88,8 @@ export default function LoginForm() {
       try {
         localStorage.setItem("rememberedEmail", email.trim().toLowerCase());
       } catch (error) {
-        // localStorage might not be available - silenciosamente falha
-        if (process.env.NODE_ENV === 'development') {
-          console.warn("Could not save email to localStorage:", error);
-        }
+        // WHY: localStorage might not be available - silently fail
+        // Email saving is a convenience feature, not critical functionality
       }
       router.push(next);
       router.refresh();

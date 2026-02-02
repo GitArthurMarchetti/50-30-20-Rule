@@ -19,26 +19,24 @@ export default function UserWelcome({
     const formattedResult = formatCurrency(lastMonthsResult)
 
     return (
-        <div className="flex flex-row items-center h-full">
-
+        <div className="flex flex-row items-center h-full gap-4">
             <Sheet>
-
-                <SheetTrigger className="h-full w-auto cursor-pointer">
-                    <FaUserCircle className="h-full w-auto  simple-button-style" />
+                <SheetTrigger className="h-full w-auto cursor-pointer transition-opacity hover:opacity-80">
+                    <FaUserCircle className="h-full w-auto simple-button-style" />
                 </SheetTrigger>
 
-                <SheetContent side="left" className="border-none">
+                <SheetContent side="left" className="border-none bg-secondary-background">
                     <UserSheet />
                 </SheetContent>
             </Sheet>
 
-            <div className="card-transaction ml-5 flex items-center">
-                <p className="mr-2">
+            <div className="card-transaction flex items-center gap-2 px-4 py-2">
+                <span className="text-sm secondary-text">
                     Last month&apos;s result:
-                </p>
-                <p className="font-bold text-green-300">
+                </span>
+                <span className="font-bold text-income">
                     {formattedResult}
-                </p>
+                </span>
             </div>
         </div>
     );

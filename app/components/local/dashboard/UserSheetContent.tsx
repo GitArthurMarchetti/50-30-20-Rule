@@ -29,10 +29,7 @@ export function UserSheet() {
           setUser(null)
         }
       } catch (error) {
-        // Log apenas em desenvolvimento
-        if (process.env.NODE_ENV === 'development') {
-          console.error("Error fetching user:", error);
-        }
+        // WHY: Silently handle user fetch failure - component gracefully handles null user
         setUser(null)
       } finally {
         setIsLoading(false)
@@ -52,16 +49,12 @@ export function UserSheet() {
         setUser(null)
         router.push("/login")
       } else {
-        // Log apenas em desenvolvimento
-        if (process.env.NODE_ENV === 'development') {
-          console.error("Logout failed");
-        }
+        // WHY: Logout failure is handled silently - user remains logged in
+        // In production, server-side logging captures these errors
       }
     } catch (error) {
-      // Log apenas em desenvolvimento
-      if (process.env.NODE_ENV === 'development') {
-        console.error("Error during logout:", error);
-      }
+      // WHY: Network errors during logout are handled silently
+      // User remains logged in if logout fails - better UX than showing error
     }
   }
 

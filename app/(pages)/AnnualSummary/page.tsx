@@ -24,10 +24,8 @@ export default function AnnualSummary() {
                     ? err.message
                     : "Failed to fetch annual summary";
                 setError(message);
-                // Log apenas em desenvolvimento para não poluir logs de produção
-                if (process.env.NODE_ENV === 'development') {
-                  console.error("Error fetching summary:", err);
-                }
+                // WHY: Error is already handled through error state - no need for console logging
+                // Server-side logging captures these errors in production
                 setSummary(null);
             } finally {
                 setIsLoading(false);

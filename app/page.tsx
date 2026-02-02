@@ -82,7 +82,7 @@ function DashboardContent() {
         categories.map((cat) => [cat.id, cat.name])
       );
       setCategoryMap(newMap);
-    } catch (e) {
+    } catch {
       // WHY: Silently handle category fetch failures - component can function without category names
       // Category IDs are still valid even if names can't be loaded
     } finally {
@@ -158,7 +158,6 @@ function DashboardContent() {
           onYearChange={handleYearChange}
           financialStatement={data.financialStatement}
           isRefreshing={isRefreshing}
-          onImportSuccess={handleRefetch}
         />
       }
     >

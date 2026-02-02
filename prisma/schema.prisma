@@ -17,9 +17,10 @@ model User {
   password_hash          String
   previous_month_balance Decimal? @db.Decimal(10, 2)
 
-  transactions Transaction[]
-  summaries    MonthlySummary[]
-  categories   Category[]
+  transactions        Transaction[]
+  pendingTransactions PendingTransaction[]
+  summaries           MonthlySummary[]
+  categories          Category[]
 
   @@map("users")
 }
@@ -42,7 +43,8 @@ model Category {
   userId Int
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  transactions Transaction[]
+  transactions        Transaction[]
+  pendingTransactions PendingTransaction[]
 
   @@unique([userId, name, type])
   @@map("categories")
@@ -63,6 +65,27 @@ model Transaction {
 
   @@unique([id, userId]) 
   @@map("transactions")
+}
+
+model PendingTransaction {
+  id          Int             @id @default(autoincrement())
+  description String
+  amount      Decimal         @db.Decimal(10, 2)
+  date        DateTime        @default(now())
+  type        TransactionType
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  categoryId Int?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  expiresAt  DateTime        @default(now())
+  isDuplicate Boolean?
+  rawData    String?
+
+  @@index([userId, expiresAt])
+  @@map("pending_transactions")
 }
 
 model MonthlySummary {

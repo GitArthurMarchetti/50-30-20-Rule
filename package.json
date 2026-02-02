@@ -27,6 +27,8 @@
     "check:env": "tsx scripts/check-env.ts",
     "check:health": "tsx scripts/health-check.ts",
     "check:security": "tsx scripts/security-check.ts",
+    "verify:calculations": "tsx scripts/verify-financial-calculations.ts",
+    "test:import": "tsx scripts/test-transaction-import.ts",
     "generate:jwt-secret": "tsx scripts/generate-jwt-secret.ts",
     "benchmark:dashboard": "tsx scripts/benchmark-dashboard.ts",
     "db:reset:full": "tsx scripts/reset-db.ts",

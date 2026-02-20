@@ -16,6 +16,7 @@ import DashboardLayout from "./layout/DashboardLayout";
 import FinancialCategoryCard from "./components/local/dashboard/Header/financials/FinancialCategoryCard";
 import FinancialEntryRow from "./components/local/dashboard/Header/financials/FinancialEntryRow";
 import MonthSelector from "./components/local/dashboard/Header/MonthSelector";
+import MobileBudgetViewer from "./components/local/dashboard/MobileBudgetViewer";
 
 // ============================================================================
 // LAZY LOADED COMPONENTS (Code Splitting)
@@ -118,20 +119,27 @@ function DashboardContent() {
   // --------------------------------------------------------------------------
   if ((isLoading && !data) || isCategoryLoading) {
     return (
-      <DashboardLayout
-        sidebar={
-          <div className="flex flex-col h-full">
-            <MonthSelector
-              selectedDate={selectedDate}
-              onMonthChange={() => {}}
-              onYearChange={() => {}}
-            />
-            <FinancialStatementSkeleton />
-          </div>
-        }
-      >
-        <DashboardSkeleton />
-      </DashboardLayout>
+      <>
+        <div className="mobile-only w-full h-full flex items-center justify-center">
+          <div className="animate-pulse text-muted-foreground">Loading...</div>
+        </div>
+        <div className="desktop-only w-full h-full">
+          <DashboardLayout
+            sidebar={
+              <div className="flex flex-col h-full">
+                <MonthSelector
+                  selectedDate={selectedDate}
+                  onMonthChange={() => {}}
+                  onYearChange={() => {}}
+                />
+                <FinancialStatementSkeleton />
+              </div>
+            }
+          >
+            <DashboardSkeleton />
+          </DashboardLayout>
+        </div>
+      </>
     );
   }
 
@@ -150,23 +158,31 @@ function DashboardContent() {
   // --------------------------------------------------------------------------
 
   return (
-    <DashboardLayout
-      sidebar={
-        <Sidebar
-          selectedDate={selectedDate}
-          onMonthChange={handleMonthChange}
-          onYearChange={handleYearChange}
-          financialStatement={data.financialStatement}
-          isRefreshing={isRefreshing}
-        />
-      }
-    >
-      <DashboardHeader
-        lastMonthsResult={data.lastMonthsResult}
-        selectedDate={selectedDate}
-      />
+    <>
+      {/* Mobile View - Visible on screens smaller than 1400px */}
+      <div className="mobile-only w-full h-full">
+        <MobileBudgetViewer data={data} />
+      </div>
 
-      <section className="h-8/9 w-full mt-auto flex flex-row justify-evenly gap-4">
+      {/* Desktop View - Only visible on screens 1400px and above */}
+      <div className="desktop-only w-full h-full">
+        <DashboardLayout
+          sidebar={
+            <Sidebar
+              selectedDate={selectedDate}
+              onMonthChange={handleMonthChange}
+              onYearChange={handleYearChange}
+              financialStatement={data.financialStatement}
+              isRefreshing={isRefreshing}
+            />
+          }
+        >
+          <DashboardHeader
+            lastMonthsResult={data.lastMonthsResult}
+            selectedDate={selectedDate}
+          />
+
+          <section className="h-8/9 w-full mt-auto flex flex-row justify-evenly gap-4">
         {/* Main Categories */}
         {mainCategories.map((category) => (
           <div key={category.title} className="w-1/5 h-full">
@@ -227,7 +243,9 @@ function DashboardContent() {
           ))}
         </div>
       </section>
-    </DashboardLayout>
+        </DashboardLayout>
+      </div>
+    </>
   );
 }
 

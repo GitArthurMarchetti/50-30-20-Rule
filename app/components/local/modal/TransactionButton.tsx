@@ -4,8 +4,9 @@
 // IMPORTS
 // ============================================================================
 // External
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useMemo } from "react";
 import { PlusCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Internal - Types
 import { TransactionType } from "@/app/generated/prisma";
@@ -17,6 +18,7 @@ import { ApiError } from "@/app/lib/client/api-client";
 
 // Internal - Context
 import { useDashboard } from "@/app/context/DashboardContex";
+import { useToast } from "@/app/context/ToastContext";
 
 // Internal - Components
 import {
@@ -51,6 +53,7 @@ export default function AddTransactionButton({
   // State
   // --------------------------------------------------------------------------
   const { setCreatingTransaction } = useDashboard();
+  const { showToast } = useToast();
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -63,6 +66,12 @@ export default function AddTransactionButton({
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // --------------------------------------------------------------------------
+  // Validation
+  // --------------------------------------------------------------------------
+  const isFormValid = useMemo(() => {
+    return description.trim() !== "" && amount.trim() !== "" && date.trim() !== "";
+  }, [description, amount, date]);
 
   // --------------------------------------------------------------------------
   // Effects
@@ -161,6 +170,7 @@ export default function AddTransactionButton({
       });
 
       setOpen(false);
+      showToast("Transaction created!", undefined, 3000);
       await onTransactionAdded();
     } catch (err) {
       const message =
@@ -279,16 +289,21 @@ export default function AddTransactionButton({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+              className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-all duration-200 hover:bg-accent hover:text-accent-foreground hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
-              disabled={isLoading}
-              className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+              disabled={isLoading || !isFormValid}
+              className={cn(
+                "inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:cursor-not-allowed",
+                isFormValid
+                  ? "transaction-background text-foreground hover:bg-white hover:text-white hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                  : "bg-gray-800 text-gray-500 opacity-60 cursor-not-allowed"
+              )}
             >
-              {isLoading ? 'Salvando...' : 'Salvar'}
+              {isLoading ? 'Saving...' : 'Save'}
             </button>
           </DialogFooter>
         </form>

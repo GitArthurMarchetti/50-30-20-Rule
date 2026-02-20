@@ -1,4 +1,6 @@
 import { PrismaClient } from "@/app/generated/prisma"
+import { Pool } from 'pg'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { logError, logWarning, logInfo } from "@/app/lib/logger"
 import { validateEnvVarsOrThrow } from "@/app/lib/env-validator"
 
@@ -18,25 +20,41 @@ if (typeof window === 'undefined') {
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient | undefined }
 
+// Create PostgreSQL connection pool
+// WHY: Lazy initialization ensures DATABASE_URL is available
+// Pool is created only when PrismaClient is instantiated
+function createAdapter() {
+  const connectionString = process.env.DATABASE_URL;
+  
+  if (!connectionString) {
+    throw new Error(
+      'DATABASE_URL is not set. Please check your .env or .env.local file.'
+    );
+  }
+
+  const pool = new Pool({
+    connectionString,
+  });
+
+  return new PrismaPg(pool);
+}
+
 /**
  * Optimized Prisma Client Configuration
  * - Connection pooling for better performance
  * - Query optimization settings
  * - Error handling improvements
+ * 
+ * NOTE: Prisma 7 requires either "adapter" or "accelerateUrl" in constructor
  */
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
+    adapter: createAdapter(), // Required in Prisma 7 for engine type "client"
     log: process.env.NODE_ENV === 'development' 
       ? ['error', 'warn', 'query'] // Log queries in dev for debugging
       : ['error', 'warn'], // Only errors and warnings in production
     errorFormat: 'minimal', // Reduce error payload size
-    // Connection pool optimization
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
   })
 
 // Optimize connection handling

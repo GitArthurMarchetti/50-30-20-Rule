@@ -189,7 +189,7 @@ export default function TransactionEditModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] border border-white/20 bg-background">
                 <DialogHeader>
                     <DialogTitle>Edit Transaction: {formData.description}</DialogTitle>
                     <DialogDescription>
@@ -207,7 +207,7 @@ export default function TransactionEditModal({
                             name="description"
                             value={formData.description}
                             onChange={handleChange}
-                            className="flex h-10 w-full rounded-md  bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             required
                         />
                     </div>
@@ -233,7 +233,7 @@ export default function TransactionEditModal({
                                 e.preventDefault();
                               }
                             }}
-                            className="flex h-10 w-full rounded-md  bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             placeholder="0,00"
                             step="0.01"
                             min="0"
@@ -250,7 +250,7 @@ export default function TransactionEditModal({
                             name="date"
                             value={formData.date as string}
                             onChange={handleChange}
-                            className="flex h-10 w-full rounded-md  bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             required
                         />
                     </div>
@@ -263,7 +263,7 @@ export default function TransactionEditModal({
                             id="categoryId"
                             value={formData.categoryId ? String(formData.categoryId) : ""}
                             onChange={handleChange}
-                            className="flex h-10 w-full rounded-md  bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={isCategoriesLoading}
                             required={false}
                         >
@@ -286,16 +286,16 @@ export default function TransactionEditModal({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="inline-flex h-10 items-center justify-center rounded-md  bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                            className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium ring-offset-background transition-all duration-200 hover:bg-accent hover:text-accent-foreground hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
                         >
-                            Cancelar
+                            Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                            className="inline-flex h-10 items-center justify-center rounded-md transaction-background px-4 py-2 text-sm font-medium text-foreground ring-offset-background transition-all duration-200 hover:bg-white hover:text-white hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
                         >
-                            {isLoading ? 'Salvando...' : 'Salvar'}
+                            {isLoading ? 'Saving...' : 'Save'}
                         </button>
                     </DialogFooter>
                 </form>

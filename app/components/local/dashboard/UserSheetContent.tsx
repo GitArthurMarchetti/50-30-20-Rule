@@ -1,5 +1,5 @@
 import { SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet"
-import { SheetSkeleton } from "@/components/ui/sheet-skeleton"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Heart } from "lucide-react"
@@ -59,12 +59,21 @@ export function UserSheet() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full w-full secondary-background">
       {isLoading ? (
-        <SheetSkeleton
-          disableBody
-          footer={[{ width: "w-full", height: "h-9" }]}
-        />
+        <div className="flex flex-col h-full">
+          <SheetHeader className="pb-6">
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-5 w-64" />
+          </SheetHeader>
+          
+          <div className="flex-1" />
+          
+          <SheetFooter className="flex-col gap-4 border-t pt-4 mt-auto">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-4 w-48 mx-auto" />
+          </SheetFooter>
+        </div>
       ) : user ? (
         <>
           <SheetHeader className="pb-6">
@@ -87,7 +96,7 @@ export function UserSheet() {
               {isLoading ? "Exiting..." : "Logout"}
             </button>
             <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
-              Made by <Heart className="size-3 fill-red-500 text-red-500" /> by Arthur Marchetti
+              Made with <Heart className="size-3 fill-red-500 text-red-500" /> by Arthur Marchetti
             </p>
           </SheetFooter>
         </>

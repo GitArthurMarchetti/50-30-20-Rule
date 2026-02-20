@@ -118,7 +118,7 @@ const FinancialEntryRow = memo(function FinancialEntryRow(props: FinancialEntryR
     <>
       <div
         onClick={handleOpenModal}
-        className={`group flex justify-between items-start p-3 mb-2 text-sm card-transaction rounded transition-all duration-200 hover:shadow-sm ${deletingClasses} cursor-pointer min-w-0`}
+        className={`group flex justify-between items-start p-2 mb-2 text-sm  card-transaction rounded transition-opacity ${deletingClasses} cursor-pointer min-w-0`}
       >
         <div className="flex-1 min-w-0 flex flex-col pr-2">
           <span className="secondary-text line-clamp-2 break-words">{label}</span>
@@ -135,10 +135,10 @@ const FinancialEntryRow = memo(function FinancialEntryRow(props: FinancialEntryR
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 z-10 flex-shrink-0"
-            aria-label="Apagar transação"
+            className="opacity-0 group-hover:opacity-100 flex items-center justify-center h-7 w-7 rounded-md text-red-500 hover:text-red-400 hover:bg-red-500/10 active:bg-red-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer z-10 flex-shrink-0"
+            aria-label="Delete transaction"
           >
-            <Trash2 size={14} />
+            <Trash2 size={14} className="transition-transform duration-200 group-hover:scale-110" />
           </button>
         </div>
       </div>

@@ -12,7 +12,7 @@ export default function Sidebar({
     isRefreshing 
 }: SidebarProps & { isRefreshing?: boolean }) {
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full w-full secondary-background">
             <MonthSelector
                 selectedDate={selectedDate}
                 onMonthChange={onMonthChange}

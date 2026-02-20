@@ -1,15 +1,15 @@
-# 📐 Guia de Organização de Código
+# 📐 Code Organization Guide
 
-Este documento descreve o padrão de organização visual e estrutural usado no projeto.
+This document describes the visual and structural organization pattern used in the project.
 
-## 🎯 Princípios
+## 🎯 Principles
 
-1. **Consistência**: Todos os arquivos seguem o mesmo padrão
-2. **Legibilidade**: Código fácil de ler e navegar
-3. **Manutenibilidade**: Estrutura clara facilita manutenção
-4. **Profissionalismo**: Código limpo e bem organizado
+1. **Consistency**: All files follow the same pattern
+2. **Readability**: Code that's easy to read and navigate
+3. **Maintainability**: Clear structure facilitates maintenance
+4. **Professionalism**: Clean and well-organized code
 
-## 📁 Estrutura de Arquivos
+## 📁 File Structure
 
 ### API Routes (`app/api/**/route.ts`)
 
@@ -54,12 +54,12 @@ const postHandler: AuthenticatedHandler<RouteParams> = async (
     // ------------------------------------------------------------------------
     // Parse & Validate Request Body
     // ------------------------------------------------------------------------
-    // ... código de validação
+    // ... validation code
 
     // ------------------------------------------------------------------------
     // Business Logic
     // ------------------------------------------------------------------------
-    // ... código de negócio
+    // ... business logic code
 
     // ------------------------------------------------------------------------
     // Success Response
@@ -81,7 +81,7 @@ export const POST = withAuth(postHandler, {
 });
 ```
 
-### Componentes React (`app/components/**/*.tsx`)
+### React Components (`app/components/**/*.tsx`)
 
 ```typescript
 "use client";
@@ -127,7 +127,7 @@ export default function Component({ categoryType, onTransactionAdded }: Componen
   // Effects
   // --------------------------------------------------------------------------
   useEffect(() => {
-    // ... efeito
+    // ... effect
   }, [dependencies]);
 
   // --------------------------------------------------------------------------
@@ -148,7 +148,7 @@ export default function Component({ categoryType, onTransactionAdded }: Componen
 }
 ```
 
-### Serviços (`app/lib/services/**/*.ts`)
+### Services (`app/lib/services/**/*.ts`)
 
 ```typescript
 // ============================================================================
@@ -197,34 +197,34 @@ export async function mainFunction(): Promise<void> {
 }
 ```
 
-## 📋 Regras de Organização
+## 📋 Organization Rules
 
 ### 1. Imports
 
-**Ordem:**
-1. External (bibliotecas npm)
-2. Internal - Types (tipos e interfaces)
-3. Internal - Services (serviços e APIs)
-4. Internal - Context (contextos React)
-5. Internal - Components (componentes React)
-6. Internal - Utilities (helpers e utils)
+**Order:**
+1. External (npm libraries)
+2. Internal - Types (types and interfaces)
+3. Internal - Services (services and APIs)
+4. Internal - Context (React contexts)
+5. Internal - Components (React components)
+6. Internal - Utilities (helpers and utils)
 
-**Agrupamento:**
-- Um grupo por categoria
-- Linha em branco entre grupos
-- Comentário descritivo para cada grupo
+**Grouping:**
+- One group per category
+- Blank line between groups
+- Descriptive comment for each group
 
-### 2. Seções
+### 2. Sections
 
-Use comentários de seção para organizar:
+Use section comments to organize:
 
 ```typescript
 // ============================================================================
-// NOME DA SEÇÃO (MAIÚSCULAS)
+// SECTION NAME (UPPERCASE)
 // ============================================================================
 ```
 
-**Seções comuns:**
+**Common sections:**
 - `IMPORTS`
 - `TYPES`
 - `CONSTANTS`
@@ -236,59 +236,57 @@ Use comentários de seção para organizar:
 - `RENDER` (React)
 - `EXPORTS`
 
-### 3. Sub-seções
+### 3. Sub-sections
 
-Use comentários de sub-seção para detalhar:
+Use sub-section comments to detail:
 
 ```typescript
 // --------------------------------------------------------------------------
-// Nome da Sub-seção
+// Sub-section Name
 // --------------------------------------------------------------------------
 ```
 
-**Sub-seções comuns:**
+**Common sub-sections:**
 - `State` (React)
 - `Parse & Validate`
 - `Business Logic`
 - `Success Response`
 - `Error Handling`
 
-### 4. Espaçamento
+### 4. Spacing
 
-- **2 linhas em branco** entre seções principais
-- **1 linha em branco** entre sub-seções
-- **1 linha em branco** entre funções/componentes relacionados
-- **Sem linhas em branco** dentro de blocos lógicos
+- **2 blank lines** between main sections
+- **1 blank line** between sub-sections
+- **1 blank line** between related functions/components
+- **No blank lines** within logical blocks
 
-### 5. Comentários
+### 5. Comments
 
-- **Seções**: Comentários de seção para organização
-- **Código**: Comentários apenas quando necessário para clareza
-- **JSDoc**: Para funções exportadas públicas
+- **Sections**: Section comments for organization
+- **Code**: Comments only when necessary for clarity
+- **JSDoc**: For exported public functions
 
-### 6. Formatação
+### 6. Formatting
 
-- **Indentação**: 2 espaços
-- **Linha máxima**: 80 caracteres (quando possível)
-- **Aspas**: Duplas (`"`)
-- **Ponto e vírgula**: Sempre (`;`)
+- **Indentation**: 2 spaces
+- **Max line length**: 80 characters (when possible)
+- **Quotes**: Double (`"`)
+- **Semicolon**: Always (`;`)
 
-## ✅ Checklist de Organização
+## ✅ Organization Checklist
 
-Antes de commitar, verifique:
+Before committing, verify:
 
-- [ ] Imports organizados por categoria
-- [ ] Seções principais com comentários
-- [ ] Sub-seções quando necessário
-- [ ] Espaçamento consistente
-- [ ] Nomes descritivos
-- [ ] Código sem redundâncias
-- [ ] Comentários apenas quando necessário
+- [ ] Imports organized by category
+- [ ] Main sections with comments
+- [ ] Sub-sections when necessary
+- [ ] Consistent spacing
+- [ ] Descriptive names
+- [ ] Code without redundancies
+- [ ] Comments only when necessary
 
-## 🎨 Exemplo Completo
+## 🎨 Complete Example
 
-Veja `app/api/transactions/route.ts` e `app/page.tsx` para exemplos completos de organização.
+See `app/api/transactions/route.ts` and `app/page.tsx` for complete organization examples.
 
 ---
-
-**Última atualização**: Dezembro 2024

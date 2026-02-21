@@ -1,9 +1,9 @@
-'use client'; // Necessário para o useRouter
+'use client'; // Required for useRouter
 
 import { useRouter } from "next/navigation";
 import { FaBookOpen } from "react-icons/fa";
 
-// 1. Defina as props que o componente receberá
+// 1. Define the props that the component will receive
 interface AnnualLinkProps {
   selectedDate: Date;
 }
@@ -12,10 +12,10 @@ export default function AnnualLink({ selectedDate }: AnnualLinkProps) {
   const router = useRouter();
 
   const handleLink = () => {
-    // 2. Obtenha o ano da data recebida
+    // 2. Get the year from the received date
     const year = selectedDate.getFullYear();
 
-    // 3. Passe o ano como um query parameter na URL
+    // 3. Pass the year as a query parameter in the URL
     router.push(`/AnnualSummary?year=${year}`);
   }
   

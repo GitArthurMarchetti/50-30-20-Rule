@@ -16,7 +16,7 @@ import FinancialEntryRowSkeleton from "./FinancialEntryRowSkeleton";
 import { useDashboard } from "@/app/context/DashboardContex";
 
 
-// OTIMIZAÇÃO: Usar Map para O(1) lookup
+// OPTIMIZATION: Use Map for O(1) lookup
 const CATEGORY_COLOR_MAP: Record<string, string> = {
     "Income": "title-income",
     "Needs": "title-needs",
@@ -29,7 +29,7 @@ const getCategoryColorClass = (category: string): string => {
     return CATEGORY_COLOR_MAP[category] || "title-reserves";
 };
 
-// OTIMIZAÇÃO: Memoizar componente
+// OPTIMIZATION: Memoize component
 const FinancialCategoryCard = memo(function FinancialCategoryCard({
     title,
     categoryType,
@@ -45,7 +45,7 @@ const FinancialCategoryCard = memo(function FinancialCategoryCard({
 }: FinancialCategoryCardProps & { isRefreshing?: boolean }) {
     const { creatingTransaction } = useDashboard();
     
-    // OTIMIZAÇÃO: Memoizar cálculos
+    // OPTIMIZATION: Memoize calculations
     const actual = useMemo(() => parseFloat(actualPercentage), [actualPercentage]);
     const max = useMemo(() => parseFloat(maxPercentage), [maxPercentage]);
 
@@ -57,14 +57,14 @@ const FinancialCategoryCard = memo(function FinancialCategoryCard({
 
     const [showAvailable, setShowAvailable] = useState(false);
 
-    // OTIMIZAÇÃO: Memoizar função de parse
+    // OPTIMIZATION: Memoize parse function
     const parseCurrencyToNumber = useCallback((value: string): number => {
         if (!value) return 0;
         const numeric = Number(value.replace(/[^0-9.-]/g, ""));
         return isNaN(numeric) ? 0 : numeric;
     }, []);
 
-    // OTIMIZAÇÃO: Memoizar cálculos de remaining
+    // OPTIMIZATION: Memoize remaining calculations
     const remainingPercentage = useMemo(() => 
         Math.max(0, (isNaN(max) ? 0 : max) - (isNaN(actual) ? 0 : actual)),
         [max, actual]
@@ -129,7 +129,7 @@ const FinancialCategoryCard = memo(function FinancialCategoryCard({
                 <ScrollArea className="h-full w-full">
                     <div className="p-2">
                         {showSkeleton ? (
-                            // Mostrar skeleton para cada item existente ou um número mínimo
+                            // Show skeleton for each existing item or a minimum number
                             Array.from({ length: React.Children.count(children) || 3 }).map((_, i) => (
                                 <FinancialEntryRowSkeleton key={`skeleton-${i}`} />
                             ))

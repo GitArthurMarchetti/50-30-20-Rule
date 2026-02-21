@@ -27,8 +27,8 @@ type PrismaTransaction = Omit<
 // HELPER FUNCTIONS
 // ============================================================================
 /**
- * Helper para buscar balance do mês anterior
- * Big-O: O(1) - busca por índice único
+ * Helper to fetch previous month balance
+ * Big-O: O(1) - lookup by unique index
  */
 async function getPreviousMonthBalance(
   tx: PrismaTransaction | typeof prisma,
@@ -54,14 +54,14 @@ async function getPreviousMonthBalance(
 }
 
 /**
- * Recalcula o summary completo de um mês (usado para primeira vez ou recálculo manual)
- * Big-O: O(n) onde n = número de transações do mês
+ * Recalculates the complete summary of a month (used for first time or manual recalculation)
+ * Big-O: O(n) where n = number of transactions in the month
  * 
- * OTIMIZAÇÃO: Usa agregação SQL via Prisma para melhor performance
+ * OPTIMIZATION: Uses SQL aggregation via Prisma for better performance
  * 
- * @param userId - ID do usuário
- * @param dateForMonth - Data do mês a calcular
- * @returns Summary do mês
+ * @param userId - User ID
+ * @param dateForMonth - Date of the month to calculate
+ * @returns Month summary
  */
 export async function getOrCreateMonthlySummary(userId: number, dateForMonth: Date) {
   const prevMonthDate = new Date(dateForMonth.getFullYear(), dateForMonth.getMonth() - 1, 1);
@@ -81,7 +81,7 @@ export async function getOrCreateMonthlySummary(userId: number, dateForMonth: Da
   const firstDayOfMonth = new Date(dateForMonth.getFullYear(), dateForMonth.getMonth(), 1);
   const lastDayOfMonth = new Date(dateForMonth.getFullYear(), dateForMonth.getMonth() + 1, 0, 23, 59, 59);
 
-  // OTIMIZAÇÃO: Use optimized query helper - single GROUP BY query
+  // OPTIMIZATION: Use optimized query helper - single GROUP BY query
   const dateRange = {
     gte: firstDayOfMonth,
     lte: lastDayOfMonth,
@@ -89,7 +89,7 @@ export async function getOrCreateMonthlySummary(userId: number, dateForMonth: Da
   
   const aggregations = await getTransactionAggregationsByType(userId, dateRange);
 
-  // OTIMIZAÇÃO: Get values from aggregation map (O(1) lookup)
+  // OPTIMIZATION: Get values from aggregation map (O(1) lookup)
   const total_income = aggregations.get(TransactionType.INCOME) ?? new Decimal(0);
   const needs_expenses = aggregations.get(TransactionType.NEEDS) ?? new Decimal(0);
   const wants_expenses = aggregations.get(TransactionType.WANTS) ?? new Decimal(0);
@@ -129,14 +129,14 @@ export async function getOrCreateMonthlySummary(userId: number, dateForMonth: Da
 }
 
 /**
- * Atualiza o summary de forma incremental quando uma transação muda
+ * Updates the summary incrementally when a transaction changes
  * 
- * OTIMIZAÇÃO: O(1) - apenas atualiza o campo específico em vez de recalcular tudo
+ * OPTIMIZATION: O(1) - only updates the specific field instead of recalculating everything
  * 
- * @param userId - ID do usuário
- * @param monthDate - Data do mês a atualizar
- * @param transactionDelta - Diferença da transação (oldAmount para remover, newAmount para adicionar)
- * @returns Summary atualizado
+ * @param userId - User ID
+ * @param monthDate - Date of the month to update
+ * @param transactionDelta - Transaction difference (oldAmount to remove, newAmount to add)
+ * @returns Updated summary
  */
 export async function updateMonthlySummaryIncremental(
   userId: number,
@@ -149,7 +149,7 @@ export async function updateMonthlySummaryIncremental(
 ) {
   const firstDayOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
   
-  // Busca o summary atual (ou cria se não existir)
+  // Fetch current summary (or create if it doesn't exist)
   const currentSummary = await prisma.monthlySummary.findUnique({
     where: {
       userId_month_year: {
@@ -159,51 +159,51 @@ export async function updateMonthlySummaryIncremental(
     }
   });
 
-  // Se não existe, recalcula tudo (primeira vez)
+  // If it doesn't exist, recalculate everything (first time)
   if (!currentSummary) {
     return await getOrCreateMonthlySummary(userId, monthDate);
   }
 
-  // Verifica se o tipo afeta o summary usando configuração centralizada
+  // Check if the type affects the summary using centralized configuration
   if (!affectsSummary(transactionDelta.type)) {
-    // Tipo não afeta summary (ex: ROLLOVER)
+    // Type doesn't affect summary (e.g., ROLLOVER)
     return currentSummary;
   }
 
-  // Obtém configuração do tipo - O(1) lookup no Record
+  // Get type configuration - O(1) lookup in Record
   const config = getTransactionTypeConfig(transactionDelta.type);
   
   if (!config.summaryField) {
     return currentSummary;
   }
 
-  // Calcula a diferença
+  // Calculate the difference
   let delta = new Decimal(0);
   if (transactionDelta.oldAmount) {
-    delta = delta.sub(transactionDelta.oldAmount); // Remove valor antigo
+    delta = delta.sub(transactionDelta.oldAmount); // Remove old value
   }
   if (transactionDelta.newAmount) {
-    delta = delta.add(transactionDelta.newAmount); // Adiciona valor novo
+    delta = delta.add(transactionDelta.newAmount); // Add new value
   }
 
-  // Se não há mudança, retorna sem atualizar
+  // If there's no change, return without updating
   if (delta.isZero()) {
     return currentSummary;
   }
 
-  // Atualiza o campo correspondente dinamicamente usando configuração
+  // Update the corresponding field dynamically using configuration
   const currentValue = currentSummary[config.summaryField] as Decimal;
   const updateData: Partial<typeof currentSummary> = {
     [config.summaryField]: currentValue.add(delta),
   };
 
-  // Recalcula final_balance de forma genérica usando configuração
+  // Recalculate final_balance generically using configuration
   const startingBalance = await getPreviousMonthBalance(prisma, userId, monthDate);
   
-  // Soma todas as receitas
+  // Sum all income
   const totalIncome = (updateData.total_income ?? currentSummary.total_income) as Decimal;
   
-  // Subtrai todas as despesas usando configuração para identificar quais são despesas
+  // Subtract all expenses using configuration to identify which are expenses
   const expenseFields: Array<keyof typeof currentSummary> = [
     'needs_expenses',
     'wants_expenses', 
@@ -233,8 +233,8 @@ export async function updateMonthlySummaryIncremental(
 }
 
 /**
- * Versão da função que aceita transação do Prisma para operações atômicas
- * Usa o cliente de transação passado em vez do prisma global
+ * Version of the function that accepts Prisma transaction for atomic operations
+ * Uses the passed transaction client instead of the global prisma
  */
 export async function updateMonthlySummaryIncrementalWithTx(
   tx: PrismaTransaction,
@@ -248,7 +248,7 @@ export async function updateMonthlySummaryIncrementalWithTx(
 ) {
   const firstDayOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
   
-  // Busca o summary atual (ou cria se não existir)
+  // Fetch current summary (or create if it doesn't exist)
   const currentSummary = await tx.monthlySummary.findUnique({
     where: {
       userId_month_year: {
@@ -258,10 +258,10 @@ export async function updateMonthlySummaryIncrementalWithTx(
     }
   });
 
-  // Se não existe, recalcula tudo (primeira vez)
+  // If it doesn't exist, recalculate everything (first time)
   if (!currentSummary) {
-    // Para transações, precisamos calcular o summary completo
-    // Isso é mais complexo, então vamos criar um summary básico
+    // For transactions, we need to calculate the complete summary
+    // This is more complex, so we'll create a basic summary
     const prevMonthDate = new Date(monthDate.getFullYear(), monthDate.getMonth() - 1, 1);
     const previousSummary = await tx.monthlySummary.findUnique({
       where: {
@@ -274,7 +274,7 @@ export async function updateMonthlySummaryIncrementalWithTx(
 
     const starting_balance = previousSummary ? previousSummary.final_balance : new Decimal(0);
     
-    // Inicializa valores zerados
+    // Initialize zeroed values
     const summaryData = {
       userId: userId,
       month_year: firstDayOfMonth,
@@ -288,11 +288,11 @@ export async function updateMonthlySummaryIncrementalWithTx(
 
     await tx.monthlySummary.create({ data: summaryData });
     
-    // Agora atualiza com o delta
+    // Now update with the delta
     return updateMonthlySummaryIncrementalWithTx(tx, userId, monthDate, transactionDelta);
   }
 
-  // Verifica se o tipo afeta o summary
+  // Check if the type affects the summary
   if (!affectsSummary(transactionDelta.type)) {
     return currentSummary;
   }
@@ -303,7 +303,7 @@ export async function updateMonthlySummaryIncrementalWithTx(
     return currentSummary;
   }
 
-  // Calcula a diferença
+  // Calculate the difference
   let delta = new Decimal(0);
   if (transactionDelta.oldAmount) {
     delta = delta.sub(transactionDelta.oldAmount);
@@ -316,13 +316,13 @@ export async function updateMonthlySummaryIncrementalWithTx(
     return currentSummary;
   }
 
-  // Atualiza o campo correspondente
+  // Update the corresponding field
   const currentValue = currentSummary[config.summaryField] as Decimal;
   const updateData: Partial<typeof currentSummary> = {
     [config.summaryField]: currentValue.add(delta),
   };
 
-  // Recalcula final_balance usando helper
+  // Recalculate final_balance using helper
   const startingBalance = await getPreviousMonthBalance(tx, userId, monthDate);
   
   const totalIncome = (updateData.total_income ?? currentSummary.total_income) as Decimal;

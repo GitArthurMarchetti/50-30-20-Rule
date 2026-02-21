@@ -1,7 +1,7 @@
 import { TransactionType } from "@/app/generated/prisma";
 
 /**
- * Nome dos campos do MonthlySummary que podem ser afetados por transações
+ * Names of MonthlySummary fields that can be affected by transactions
  */
 type SummaryFieldName = 
   | 'total_income' 
@@ -11,23 +11,23 @@ type SummaryFieldName =
   | 'total_investments';
 
 /**
- * Configuração de como cada TransactionType afeta o MonthlySummary
+ * Configuration of how each TransactionType affects MonthlySummary
  */
 type TransactionTypeConfig = {
-  summaryField: SummaryFieldName | null; // null = não afeta summary (ex: ROLLOVER)
-  isIncome: boolean; // true = soma ao balance, false = subtrai do balance
-  affectsBalance: boolean; // se afeta o cálculo do final_balance
+  summaryField: SummaryFieldName | null; // null = doesn't affect summary (e.g., ROLLOVER)
+  isIncome: boolean; // true = adds to balance, false = subtracts from balance
+  affectsBalance: boolean; // whether it affects the final_balance calculation
 };
 
 /**
- * Configuração centralizada do mapeamento TransactionType → Summary Field
+ * Centralized configuration of TransactionType → Summary Field mapping
  * 
- * ESTRUTURA DE DADOS: Record<TransactionType, TransactionTypeConfig>
- * - Performance: O(1) lookup - acesso direto por chave
- * - Type Safety: TypeScript valida que TODOS os tipos do enum estão presentes
- * - Escalável: Adicionar novo tipo = apenas uma linha neste objeto
- * - Imutável: 'as const' previne mutações acidentais
- * - Compile-time checks: Se faltar um tipo, TypeScript ERRA em compile-time
+ * DATA STRUCTURE: Record<TransactionType, TransactionTypeConfig>
+ * - Performance: O(1) lookup - direct access by key
+ * - Type Safety: TypeScript validates that ALL enum types are present
+ * - Scalable: Adding new type = just one line in this object
+ * - Immutable: 'as const' prevents accidental mutations
+ * - Compile-time checks: If a type is missing, TypeScript ERRORS at compile-time
  */
 export const TRANSACTION_TYPE_CONFIG = {
   [TransactionType.INCOME]: {
@@ -63,33 +63,33 @@ export const TRANSACTION_TYPE_CONFIG = {
 } as const satisfies Record<TransactionType, TransactionTypeConfig>;
 
 /**
- * Helper para buscar configuração de um tipo
- * Big-O: O(1) - acesso direto ao Record
+ * Helper to fetch configuration of a type
+ * Big-O: O(1) - direct access to Record
  * 
- * @param type - Tipo da transação
- * @returns Configuração do tipo
+ * @param type - Transaction type
+ * @returns Type configuration
  */
 export function getTransactionTypeConfig(type: TransactionType): TransactionTypeConfig {
   return TRANSACTION_TYPE_CONFIG[type];
 }
 
 /**
- * Helper para verificar se tipo afeta summary
+ * Helper to check if type affects summary
  * Big-O: O(1)
  * 
- * @param type - Tipo da transação
- * @returns true se o tipo afeta o summary, false caso contrário
+ * @param type - Transaction type
+ * @returns true if the type affects the summary, false otherwise
  */
 export function affectsSummary(type: TransactionType): boolean {
   return TRANSACTION_TYPE_CONFIG[type].summaryField !== null;
 }
 
 /**
- * Helper para obter o nome do campo do summary para um tipo
+ * Helper to get the summary field name for a type
  * Big-O: O(1)
  * 
- * @param type - Tipo da transação
- * @returns Nome do campo ou null se não afeta summary
+ * @param type - Transaction type
+ * @returns Field name or null if it doesn't affect summary
  */
 export function getSummaryFieldName(type: TransactionType): SummaryFieldName | null {
   return TRANSACTION_TYPE_CONFIG[type].summaryField;

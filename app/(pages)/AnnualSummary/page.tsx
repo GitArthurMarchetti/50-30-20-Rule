@@ -12,7 +12,7 @@ export default function AnnualSummary() {
 
     return (
         <div className="relative min-h-screen">
-            {/* Botão no canto superior esquerdo */}
+            {/* Button in top left corner */}
             <div className="absolute top-8 left-8">
                 <button 
                     onClick={handleGoBack}
@@ -26,7 +26,7 @@ export default function AnnualSummary() {
                 </button>
             </div>
 
-            {/* Conteúdo centralizado */}
+            {/* Centered content */}
             <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center">
                 <div className="max-w-2xl space-y-6">
                     <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">

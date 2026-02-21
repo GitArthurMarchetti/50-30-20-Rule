@@ -102,7 +102,7 @@ export function UserSheet() {
         </>
       ) : (
         <div className="flex items-center justify-center h-full">
-          <p className="text-sm text-muted-foreground">Você não está logado.</p>
+          <p className="text-sm text-muted-foreground">You are not logged in.</p>
         </div>
       )}
     </div>

@@ -114,7 +114,7 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
   const reservesTotal = aggregations.get(TransactionType.RESERVES) ?? new Decimal(0);
   const investmentsTotal = aggregations.get(TransactionType.INVESTMENTS) ?? new Decimal(0);
   
-  // Total disponível (monthlyIncome + saldo anterior, se incluído)
+  // Total available (monthlyIncome + previous balance, if included)
   let totalAvailable = monthlyIncome;
   if (includeResult) {
     totalAvailable = totalAvailable.add(lastMonthsResultValue);
@@ -139,25 +139,25 @@ const getHandler: AuthenticatedHandler<Record<string, never>> = async (
         TransactionType.NEEDS,
         50,
         currentMonthTransactions,
-        monthlyIncome  // Usa monthlyIncome para calcular as metas (50%)
+        monthlyIncome  // Uses monthlyIncome to calculate goals (50%)
       ),
       wants: calculateCategoryData(
         TransactionType.WANTS,
         30,
         currentMonthTransactions,
-        monthlyIncome  // Usa monthlyIncome para calcular as metas (30%)
+        monthlyIncome  // Uses monthlyIncome to calculate goals (30%)
       ),
       reserves: calculateCategoryData(
         TransactionType.RESERVES,
         10,
         currentMonthTransactions,
-        monthlyIncome  // Usa monthlyIncome para calcular as metas (10%)
+        monthlyIncome  // Uses monthlyIncome to calculate goals (10%)
       ),
       investments: calculateCategoryData(
         TransactionType.INVESTMENTS,
         10,
         currentMonthTransactions,
-        monthlyIncome  // Usa monthlyIncome para calcular as metas (10%)
+        monthlyIncome  // Uses monthlyIncome to calculate goals (10%)
       ),
     },
 

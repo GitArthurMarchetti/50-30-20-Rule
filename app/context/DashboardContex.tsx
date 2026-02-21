@@ -41,7 +41,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
   const [creatingTransaction, setCreatingTransaction] = useState(false);
   const hasDataRef = useRef(false);
 
-  // OTIMIZAÇÃO: Memoizar fetchData para evitar recriação desnecessária
+  // OPTIMIZATION: Memoize fetchData to avoid unnecessary recreation
   const fetchData = useCallback(async (date: Date, resultIncluded: boolean) => {
     try {
       setError(null);
@@ -57,14 +57,14 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         ? err.message 
         : err instanceof Error 
         ? err.message 
-        : 'Ocorreu um erro.';
+        : 'An error occurred.';
       setError(message);
     }
-  }, []); // Dependências vazias - função não depende de estado externo
+  }, []); // Empty dependencies - function doesn't depend on external state
 
   useEffect(() => {
-    // Se já tem dados, é um refresh (mostra skeleton)
-    // Se não tem dados, é loading inicial (mostra loading geral)
+    // If data already exists, it's a refresh (shows skeleton)
+    // If no data, it's initial loading (shows general loading)
     if (hasDataRef.current) {
       setIsRefreshing(true);
     } else {
@@ -77,7 +77,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [selectedDate, includeResult, fetchData]);
 
-  // OTIMIZAÇÃO: Memoizar handlers para evitar recriação
+  // OPTIMIZATION: Memoize handlers to avoid recreation
   const handleMonthChange = useCallback((monthIndex: number) => {
     setSelectedDate(currentDate => {
       const newDate = new Date(currentDate);
@@ -113,7 +113,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         ? err.message
         : err instanceof Error
         ? err.message
-        : 'Ocorreu um erro ao apagar.';
+        : 'An error occurred while deleting.';
       setError(message);
     } finally {
       setDeletingIds(prev => prev.filter(deletingId => deletingId !== id));
@@ -130,7 +130,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     });
   }, []);
 
-  // OTIMIZAÇÃO: Memoizar value object para evitar recriação desnecessária
+  // OPTIMIZATION: Memoize value object to avoid unnecessary recreation
   const value = useMemo(() => ({
     data,
     isLoading,
@@ -176,7 +176,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
 export const useDashboard = (): DashboardContextType => {
   const context = useContext(DashboardContext);
   if (context === undefined) {
-    throw new Error('useDashboard deve ser usado dentro de um DashboardProvider');
+    throw new Error('useDashboard must be used within a DashboardProvider');
   }
   return context;
 };

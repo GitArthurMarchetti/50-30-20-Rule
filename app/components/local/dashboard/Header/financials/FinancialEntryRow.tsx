@@ -9,7 +9,7 @@ import { useDashboard } from "@/app/context/DashboardContex";
 import dynamic from "next/dynamic";
 import FinancialEntryRowSkeleton from "./FinancialEntryRowSkeleton";
 
-// OTIMIZAÇÃO: Lazy load modal pesado
+// OPTIMIZATION: Lazy load heavy modal
 const TransactionEditModal = dynamic(
   () => import("../../../modal/TransactionsEdit"),
   { ssr: false }
@@ -19,19 +19,19 @@ interface FinancialEntryRowProps {
   id: number;
   label: string;
   amount: number | null | undefined;
-  categoryTitle: string; // Mantemos para a cor
+  categoryTitle: string; // Kept for color
   onDelete: (id: number) => void;
   isDeleting?: boolean;
   date: string | Date;
   type: TransactionType;
   categoryId: number | null;
   
-  // --- INÍCIO DA MUDANÇA ---
-  categoryMap: Map<number, string>; // 1. Recebe o mapa
-  // --- FIM DA MUDANÇA ---
+  // --- START OF CHANGE ---
+  categoryMap: Map<number, string>; // 1. Receives the map
+  // --- END OF CHANGE ---
 }
 
-// OTIMIZAÇÃO: Mover função para fora do componente e usar Map para O(1) lookup
+// OPTIMIZATION: Move function outside component and use Map for O(1) lookup
 const COLOR_MAP: Record<string, string> = {
   "Income": "text-income",
   "Needs": "text-expense",
@@ -44,9 +44,9 @@ const getAmountColorClass = (category: string): string => {
   return COLOR_MAP[category] || "text-gray-200";
 };
 
-// OTIMIZAÇÃO: Memoizar componente para evitar re-renders desnecessários
+// OPTIMIZATION: Memoize component to avoid unnecessary re-renders
 const FinancialEntryRow = memo(function FinancialEntryRow(props: FinancialEntryRowProps) {
-  // Destruturamos TODAS as props
+  // Destructure ALL props
   const {
     id,
     label,
@@ -58,24 +58,24 @@ const FinancialEntryRow = memo(function FinancialEntryRow(props: FinancialEntryR
     type,
     categoryId,
 
-    // --- INÍCIO DA MUDANÇA ---
-    categoryMap // 2. Pega o mapa das props
-    // --- FIM DA MUDANÇA ---
+    // --- START OF CHANGE ---
+    categoryMap // 2. Gets the map from props
+    // --- END OF CHANGE ---
   } = props;
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { refetchData, updatingIds } = useDashboard();
   
-  // OTIMIZAÇÃO: Memoizar valores computados (ANTES do early return)
+  // OPTIMIZATION: Memoize computed values (BEFORE early return)
   const isUpdating = useMemo(() => updatingIds.includes(id), [updatingIds, id]);
   
-  // OTIMIZAÇÃO: Memoizar categoryName lookup
+  // OPTIMIZATION: Memoize categoryName lookup
   const categoryName = useMemo(
     () => categoryId ? categoryMap.get(categoryId) : null,
     [categoryId, categoryMap]
   );
 
-  // OTIMIZAÇÃO: Memoizar handlers
+  // OPTIMIZATION: Memoize handlers
   const handleDelete = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onDelete(id);
@@ -94,7 +94,7 @@ const FinancialEntryRow = memo(function FinancialEntryRow(props: FinancialEntryR
     setIsEditModalOpen(false);
   }, [refetchData]);
 
-  // OTIMIZAÇÃO: Memoizar transactionData
+  // OPTIMIZATION: Memoize transactionData
   const transactionData = useMemo(() => ({
     id,
     description: label,
@@ -104,12 +104,12 @@ const FinancialEntryRow = memo(function FinancialEntryRow(props: FinancialEntryR
     categoryId
   }), [id, label, amount, date, type, categoryId]);
 
-  // OTIMIZAÇÃO: Memoizar valores formatados
+  // OPTIMIZATION: Memoize formatted values
   const formattedAmount = useMemo(() => formatCurrency(amount ?? 0), [amount]);
   const amountColorClass = useMemo(() => getAmountColorClass(categoryTitle), [categoryTitle]);
   const deletingClasses = useMemo(() => isDeleting ? "opacity-50 pointer-events-none" : "", [isDeleting]);
   
-  // Se está deletando ou atualizando, mostra skeleton (DEPOIS de todos os hooks)
+  // If deleting or updating, show skeleton (AFTER all hooks)
   if (isDeleting || isUpdating) {
     return <FinancialEntryRowSkeleton />;
   }
@@ -153,7 +153,7 @@ const FinancialEntryRow = memo(function FinancialEntryRow(props: FinancialEntryR
   );
 });
 
-// OTIMIZAÇÃO: Definir função de comparação customizada para memo
+// OPTIMIZATION: Define custom comparison function for memo
 FinancialEntryRow.displayName = 'FinancialEntryRow';
 
 export default FinancialEntryRow;

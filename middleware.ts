@@ -29,16 +29,16 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // checa sessão
+  // check session
   const token = req.cookies.get("sessionToken")?.value;
   const valid = token && (await verifyJwt(token));
 
-  // Se for API e não estiver autenticado → 401 (não redireciona API)
+  // If it's an API and not authenticated → 401 (don't redirect API)
   if (pathname.startsWith("/api") && !isPublicPath(pathname) && !valid) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  // Se for página e não estiver autenticado → redireciona pro /login
+  // If it's a page and not authenticated → redirect to /login
   if (!pathname.startsWith("/api") && !valid) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
@@ -46,14 +46,14 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Autenticado → segue
+  // Authenticated → continue
   return NextResponse.next();
 }
 
 /**
  * Matcher:
- * - Usa negativa pra ignorar arquivos com extensão (jpg, css, js, etc.)
- * - Deixa o código acima decidir o que é público/privado.
+ * - Uses negative to ignore files with extensions (jpg, css, js, etc.)
+ * - Lets the code above decide what is public/private.
  */
 export const config = {
   matcher: ["/((?!.*\\.).*)"],

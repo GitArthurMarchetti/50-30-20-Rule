@@ -1,20 +1,20 @@
 import { NextResponse } from "next/server";
 
-/** Resposta de erro 400 - Requisição Inválida */
+/** Error response 400 - Bad Request */
 export function badRequestResponse(message: string = "Bad Request") {
     return NextResponse.json(
         { message },
         { status: 400 });
 }
 
-/** Resposta de erro 401 - Não Autorizado */
+/** Error response 401 - Unauthorized */
 export function unauthorizedResponse(message: string = "Unauthorized") {
     return NextResponse.json(
         { message },
         { status: 401 });
 }
 
-/** Resposta de erro 403 - Proibido */
+/** Error response 403 - Forbidden */
 export function forbiddenResponse(message: string = "Forbidden") {
     return NextResponse.json(
         { message },
@@ -22,7 +22,7 @@ export function forbiddenResponse(message: string = "Forbidden") {
     );
 }
 
-/** Resposta de erro 404 - Não Encontrado */
+/** Error response 404 - Not Found */
 export function notFoundResponse(message: string = "Not Found") {
     return NextResponse.json(
         { message },
@@ -30,7 +30,7 @@ export function notFoundResponse(message: string = "Not Found") {
     );
 }
 
-/** Resposta de erro 405 - Método Não Permitido */
+/** Error response 405 - Method Not Allowed */
 export function methodNotAllowedResponse(message: string = "Method Not Allowed") {
     return NextResponse.json(
         { message },
@@ -38,7 +38,7 @@ export function methodNotAllowedResponse(message: string = "Method Not Allowed")
     );
 }
 
-/** Resposta de erro 409 - Conflito */
+/** Error response 409 - Conflict */
 export function conflictResponse(message: string = "Conflict") {
     return NextResponse.json(
         { message },
@@ -46,7 +46,7 @@ export function conflictResponse(message: string = "Conflict") {
     );
 }
 
-/** Resposta de erro 422 - Entidade Não Processável (Erro de Validação) */
+/** Error response 422 - Unprocessable Entity (Validation Error) */
 export function unprocessableEntityResponse(message: string = "Unprocessable Entity") {
     return NextResponse.json(
         { message },
@@ -54,7 +54,7 @@ export function unprocessableEntityResponse(message: string = "Unprocessable Ent
     );
 }
 
-/** Resposta de erro 429 - Muitas Requisições (Rate Limit) */
+/** Error response 429 - Too Many Requests (Rate Limit) */
 export function tooManyRequestsResponse(message: string = "Too Many Requests") {
     return NextResponse.json(
         { message },
@@ -62,7 +62,7 @@ export function tooManyRequestsResponse(message: string = "Too Many Requests") {
     );
 }
 
-/** Resposta de erro 500 - Erro Interno do Servidor */
+/** Error response 500 - Internal Server Error */
 export function internalErrorResponse(message: string = "Internal Server Error") {
     return NextResponse.json(
         { message },

@@ -149,7 +149,7 @@ function DashboardContent() {
 
   if (error) {
     return (
-      <p className="text-red-500 text-center mt-10">Erro: {error}</p>
+      <p className="text-red-500 text-center mt-10">Error: {error}</p>
     );
   }
 

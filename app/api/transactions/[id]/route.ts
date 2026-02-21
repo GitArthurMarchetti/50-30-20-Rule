@@ -304,9 +304,9 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
       }
     }
 
-    // CRÍTICO: Usar transação atômica para garantir consistência
+    // CRITICAL: Use atomic transaction to ensure consistency
     const updatedTransaction = await prisma.$transaction(async (tx) => {
-      // Atualizar transação
+      // Update transaction
       const transaction = await tx.transaction.update({
         where: {
           id_userId: {
@@ -323,8 +323,8 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
         },
       });
 
-      // OTIMIZAÇÃO: Atualização incremental O(1) em vez de recalcular tudo O(n)
-      // Se o mês mudou, atualiza ambos os meses
+      // OPTIMIZATION: Incremental update O(1) instead of recalculating everything O(n)
+      // If the month changed, update both months
       const oldMonth = existingTransaction.date;
       const newMonth = transaction.date;
       const monthChanged = 
@@ -334,7 +334,7 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
       const typeChanged = existingTransaction.type !== transactionType;
 
       if (monthChanged) {
-        // Remove do mês antigo (tipo antigo)
+        // Remove from old month (old type)
         await updateMonthlySummaryIncrementalWithTx(
           tx,
           session.userId,
@@ -344,7 +344,7 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
             oldAmount: existingTransaction.amount,
           }
         );
-        // Adiciona ao mês novo (tipo novo)
+        // Add to new month (new type)
         await updateMonthlySummaryIncrementalWithTx(
           tx,
           session.userId,
@@ -355,14 +355,14 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
           }
         );
       } else if (typeChanged) {
-        // Mesmo mês, mas tipo mudou - remove do tipo antigo e adiciona ao tipo novo
+        // Same month, but type changed - remove from old type and add to new type
         await updateMonthlySummaryIncrementalWithTx(
           tx,
           session.userId,
           transactionDate,
           {
             type: existingTransaction.type,
-            oldAmount: existingTransaction.amount, // Remove do tipo antigo
+            oldAmount: existingTransaction.amount, // Remove from old type
           }
         );
         await updateMonthlySummaryIncrementalWithTx(
@@ -371,19 +371,19 @@ const putHandler: AuthenticatedHandler<RouteParams> = async (
           transactionDate,
           {
             type: transactionType,
-            newAmount: new Decimal(amount), // Adiciona ao tipo novo
+            newAmount: new Decimal(amount), // Add to new type
           }
         );
       } else {
-        // Mesmo mês, mesmo tipo - apenas atualiza diferença de valor
+        // Same month, same type - only update value difference
         await updateMonthlySummaryIncrementalWithTx(
           tx,
           session.userId,
           transactionDate,
           {
             type: transactionType,
-            oldAmount: existingTransaction.amount, // Remove valor antigo
-            newAmount: new Decimal(amount), // Adiciona valor novo
+            oldAmount: existingTransaction.amount, // Remove old value
+            newAmount: new Decimal(amount), // Add new value
           }
         );
       }

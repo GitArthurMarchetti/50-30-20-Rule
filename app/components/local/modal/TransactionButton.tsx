@@ -121,7 +121,7 @@ export default function AddTransactionButton({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!description || !amount) {
-      setError("Name and Value are necessary.");
+      setError("Name and Value are required.");
       return;
     }
     setIsLoading(true);

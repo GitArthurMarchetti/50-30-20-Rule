@@ -75,10 +75,10 @@ const postHandler: AuthenticatedHandler<Record<string, never>> = async (
       }
     }
 
-    // CRÍTICO: Usar transação atômica para garantir consistência
-    // Se a criação da transação ou atualização do summary falhar, tudo é revertido
+    // CRITICAL: Use atomic transaction to ensure consistency
+    // If transaction creation or summary update fails, everything is reverted
     const newTransaction = await prisma.$transaction(async (tx) => {
-      // Criar transação
+      // Create transaction
       const transaction = await tx.transaction.create({
         data: {
           description,
@@ -90,8 +90,8 @@ const postHandler: AuthenticatedHandler<Record<string, never>> = async (
         },
       });
 
-      // Atualizar summary dentro da mesma transação
-      // Importar função que aceita transação como parâmetro
+      // Update summary within the same transaction
+      // Import function that accepts transaction as parameter
       await updateMonthlySummaryIncrementalWithTx(
         tx,
         session.userId,

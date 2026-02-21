@@ -179,7 +179,7 @@ export default function TransactionEditModal({
           ? err.message
           : err instanceof Error
           ? err.message
-          : "Ocorreu um erro desconhecido.";
+          : "An unknown error occurred.";
       setError(message);
     } finally {
             setIsLoading(false);

@@ -195,7 +195,7 @@ async function testDuplicateDetection(): Promise<TestResult> {
   const userId = await createTestUser();
   
   try {
-    const testDate = new Date('2024-01-15');
+    const testDate = new Date('2026-01-15');
     const testAmount = new Decimal(100.50);
 
     // Create an existing transaction
@@ -265,7 +265,7 @@ async function testExpiredPendingTransactions(): Promise<TestResult> {
       data: {
         description: 'Expired Transaction',
         amount: new Decimal(50),
-        date: new Date('2024-01-15'),
+        date: new Date('2026-01-15'),
         type: TransactionType.NEEDS,
         userId,
         expiresAt: expiredDate,
@@ -320,7 +320,7 @@ async function testBatchCommitMixedIds(): Promise<TestResult> {
       data: {
         description: 'Valid Transaction 1',
         amount: new Decimal(100),
-        date: new Date('2024-01-15'),
+        date: new Date('2026-01-15'),
         type: TransactionType.INCOME,
         userId,
         expiresAt: new Date(Date.now() + 5 * 60 * 60 * 1000),
@@ -332,7 +332,7 @@ async function testBatchCommitMixedIds(): Promise<TestResult> {
       data: {
         description: 'Valid Transaction 2',
         amount: new Decimal(200),
-        date: new Date('2024-01-16'),
+        date: new Date('2026-01-16'),
         type: TransactionType.NEEDS,
         userId,
         expiresAt: new Date(Date.now() + 5 * 60 * 60 * 1000),
@@ -405,7 +405,7 @@ async function testCategoryTypeCompatibility(): Promise<TestResult> {
         data: {
           description: 'Incompatible Category',
           amount: new Decimal(100),
-          date: new Date('2024-01-15'),
+          date: new Date('2026-01-15'),
           type: TransactionType.INCOME, // Wrong type
           categoryId: needsCategoryId, // NEEDS category
           userId,
@@ -453,7 +453,7 @@ async function testMonthlySummaryUpdate(): Promise<TestResult> {
   const userId = await createTestUser();
   
   try {
-    const testDate = new Date('2024-01-15');
+    const testDate = new Date('2026-01-15');
     const firstDayOfMonth = new Date(testDate.getFullYear(), testDate.getMonth(), 1);
 
     // Create transactions following 50/30/10/10 rule
@@ -589,7 +589,7 @@ async function testAtomicOperations(): Promise<TestResult> {
   const userId = await createTestUser();
   
   try {
-    const testDate = new Date('2024-01-15');
+    const testDate = new Date('2026-01-15');
 
     // Count initial transactions
     const initialCount = await prisma.transaction.count({ where: { userId } });
@@ -660,7 +660,7 @@ async function testLargeFile(): Promise<TestResult> {
   
   try {
     const transactionCount = 1000;
-    const testDate = new Date('2024-01-15');
+    const testDate = new Date('2026-01-15');
 
     console.log(`  Creating ${transactionCount} transactions...`);
 

@@ -1,5 +1,10 @@
 # Gold Rule - Personal Finance Management
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.5-black.svg)](https://nextjs.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-6.16-2D3748.svg)](https://www.prisma.io/)
+
 This is a [Next.js](https://nextjs.org) project for managing personal finances using the "Gold Rule" budgeting methodology.
 
 ## 🚀 Getting Started
@@ -179,3 +184,26 @@ For detailed security documentation, see [SECURITY.md](./SECURITY.md).
 ## 📖 Scripts Documentation
 
 For detailed documentation about the utility scripts, see [scripts/README.md](./scripts/README.md).
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'feat: Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+For detailed contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Next.js](https://nextjs.org/)
+- Database management with [Prisma](https://www.prisma.io/)
+- UI components from [Radix UI](https://www.radix-ui.com/)
+- Icons from [Lucide](https://lucide.dev/)
